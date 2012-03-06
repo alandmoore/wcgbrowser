@@ -71,6 +71,9 @@ class MainWindow(QMainWindow):
         self.allowPopups = options.allowPopups or configuration.get("allow_popups") or False
         ###Start GUI configuration###
         self.browserWindow = WcgWebView(allowPopups=self.allowPopups)
+        self.browserWindow.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, self.allowPopups)
+        #JavascriptCanCloseWindows is in the API documentation, but my system claims QWebSettings has no such member.
+        #self.browserWindow.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, self.allowPopups)
         self.browserWindow.settings().setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
         self.browserWindow.settings().setAttribute(QWebSettings.PluginsEnabled, False)
         self.browserWindow.setZoomFactor(self.zoomfactor)
