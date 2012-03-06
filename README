@@ -1,0 +1,74 @@
+============
+ WCGBrowser
+============
+
+Author:  Alan D Moore (http://www.alandmoore.com, e-mail me_AT_alandmoore_DOT_com)
+
+
+Description
+===========
+
+WCGBrowser is a browser I wrote specifically for use on web kiosks.  It's based on pyqt and webkit, and is designed to make lock-down very simple and painless.
+
+It was originally conceived for use in library catalog terminals, when it became clear that browsers with ever-growing feature lists like Firefox and Chrome were too much work to lock down correctly and completely.  It was also designed to be easily configurable using a simple text file that can be hand-edited in a terminal over ssh across a slow WAN, so no databases, XML, or crazy binaries here.  
+
+Features
+========
+
+- Up-to-date webkit rendering
+- text-based, ini-style configuration
+- (Optional) inactivity timeout
+- Popups/open-in-new-window can be disabled
+- Minimal, no-clutter interface simple for the general public.
+
+
+Requirements
+============
+
+- Python 2.6 or higher (not sure about v 3.x yet)
+- PyQT4, preferably 4.6 or higher
+- Python configobj library (http://www.voidspace.org.uk/python/configobj.html)
+
+It should work on any platform, but it's only been tested on Debian (Squeeze) and Ubuntu (Lucid Lynx or higher)
+
+
+Usage
+=====
+
+The included wcgbrowser.conf file shows an actual configuration that I use at our public library system.  To use it,  copy it to /etc/wcgbrowser.conf, ~/.wcgbrowser, or specify it with the -c (--config-file) switch.  You can make the browser.py executable, or launch it using python, like so:
+
+python browser.py
+
+The --help switch should give you an up-to-date summary of the available command-line switches, but here are a few important ones:
+
+=================    =====================================================================================================================================
+ Switch              Description
+=================    =====================================================================================================================================
+-l, --url            The "start location" for the browser.  This is the initial URL it will load, and where it will return when reset.
+-f, --fullscreen     Makes the window fill the screen, no window decorations
+-n, --no-navigation  Turn off the navigation panel (back, forward, home, shortcuts, etc).  Make sure your actual web application is fully navigable!
+-c, --config-file    Specify a configuration file to use
+-d, --debug          Provide debugging output
+-t, --timeout        The timeout for the inactivity monitor.  After this many millisecons of inactivity, reset the browser (Why milliseconds?  Why not??)
+-i, --icon-theme     The icon theme to use.  You'll need to install these themes yourself
+-z, --zoom           The default zoom factor for content.  0 ignores this.  1 is default, 2 would be double size, 0.5 would be half-size, etc.
+-p, --popups         Enable the creation of new windows when a link is clicked that opens in a new window, or javascript tries to open a window
+=================    =====================================================================================================================================
+
+
+Bugs and Limitations
+====================
+
+- SSL certificates don't work.  Right now WCGBrowser just ignores certificate errors completely.  I'd like to see this functioning.
+- Not sure that the -p switch actually enables popup windows in all situations.  Or really at all.  There might need to be more code to get that working right.
+
+
+Contributing
+============
+
+Contributions are welcome, so long as they are consistent with the spirit and intent of the browser -- that is, they are features useful in a kiosk situation, and keep the browser simple to configure.  I would also prefer that changes to features or behavior are opt-in (require a switch to enable them), unless it just makes no sense to do it that way.
+
+License
+=======
+
+WCGBrowser is released under the terms of the GNU GPL v3.
