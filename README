@@ -60,8 +60,8 @@ Bugs and Limitations
 ====================
 
 - SSL certificates don't work.  Right now WCGBrowser just ignores certificate errors completely.  I'd like to see this functioning.
-- Not sure that the -p switch actually enables popup windows in all situations.  Or really at all.  There might need to be more code to get that working right.
-
+- Not sure that the -p switch actually enables popup windows in all situations. 
+- Authentication data like php sessions, apache authentication, etc are not passed to child windows; so if an authenticated site generates a new window, you won't be logged in.  Would love help with a fix here.
 
 Contributing
 ============
