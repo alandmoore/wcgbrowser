@@ -1,21 +1,12 @@
 #!/usr/bin/python
-from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication, qApp, QSizePolicy, QKeySequence, QToolBar, QVBoxLayout, QPushButton, QLabel, QFrame 
-from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QSize
+from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication, QSizePolicy, QKeySequence, QToolBar 
+from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, Qt
 from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
 
 import sys
 import os
-import optparse
+import argparse
 from configobj import ConfigObj
-from time import sleep
-
-if os.path.isfile(os.path.expanduser("~/.wcgbrowser.conf")):
-    default_config_file =  os.path.expanduser("~/.wcgbrowser.conf")
-elif os.path.isfile("/etc/wcgbrowser.conf"):
-    default_config_file = "/etc/wcgbrowser.conf"
-else:
-    default_config_file = None
-    print "No config file found; using defaults."
     
 class MainWindow(QMainWindow):
     def createAction(self, text, slot=None, shortcut=None, icon=None, tip=None, checkable=False, signal="triggered()"):
@@ -198,13 +189,15 @@ class Inactivity_Filter(QTimer):
         
     def eventFilter(self, object,  event):
         if event.type() in (QEvent.HoverMove, QEvent.KeyPress, QEvent.KeyRelease, ):
-            if DEBUG:
-                print ("Activity: %s type %d" % (event, event.type()))
             self.emit(SIGNAL("activity"))
             self.start(self.timeout)
-        else:
-            if DEBUG:
-                print ("Ignored event: %s type %d" % (event, event.type()))
+            #commented this debug code, because it spits out way to much information.
+            #uncomment if you're having trouble with the timeout detecting user inactivity correctly to determine what it's detecting and ignoring
+            #if DEBUG:
+            #    print ("Activity: %s type %d" % (event, event.type()))
+        #else:
+            #if DEBUG:
+            #    print ("Ignored event: %s type %d" % (event, event.type()))
         return QObject.eventFilter(self, object, event)
 
 class WcgWebView(QWebView):
@@ -224,26 +217,34 @@ class WcgWebView(QWebView):
 
 ######### Main application code begins here ###################
 
-def main(options, args):
-    app = QApplication(args)
-    mainwin = MainWindow(options)
+def main(args):
+    app = QApplication(sys.argv)
+    mainwin = MainWindow(args)
     mainwin.show()
     app.exec_()
 
 
 if __name__ == "__main__":
-    parser = optparse.OptionParser()
-    parser.add_option("-l", "--url", action="store", type="string", dest="url", help="start browser at URL")
-    parser.add_option("-f", "--fullscreen", action="store_true", default=False, dest="isFullscreen", help="start browser FullScreen")
-    parser.add_option("-n", "--no-navigation", action="store_true", default=False, dest="noNav", help="start browser without Navigation controls")
-    parser.add_option("-c", "--config-file", action="store", default=default_config_file, dest="config_file", help="Specifiy an alternate config file")
-    parser.add_option("-d", "--debug", action="store_true", default=False, dest="DEBUG", help="enable debugging output")
-    parser.add_option("-t", "--timeout", action="store", type="int",  default=0, dest="timeout", help="define the timeout after which to reset the browser due to user inactivity")
-    parser.add_option("-i", "--icon-theme", action="store", default=None, dest="icon_theme", help="override default icon theme with other Qt/KDE icon theme")
-    parser.add_option("-z", "--zoom", action="store", type="float", default=0, dest="zoomfactor", help="set the zoom factor for web pages")
-    parser.add_option("-p", "--popups", action="store_true", default=False, dest="allowPopups", help="allow the browser to open new windows")
-    (options, args) = parser.parse_args()
-    DEBUG = options.DEBUG
-    main(options, args)
+    if os.path.isfile(os.path.expanduser("~/.wcgbrowser.conf")):
+        default_config_file =  os.path.expanduser("~/.wcgbrowser.conf")
+    elif os.path.isfile("/etc/wcgbrowser.conf"):
+        default_config_file = "/etc/wcgbrowser.conf"
+    else:
+        default_config_file = None
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-l", "--url", action="store", type=unicode, dest="url", help="start browser at URL")
+    parser.add_argument("-f", "--fullscreen", action="store_true", default=False, dest="isFullscreen", help="start browser FullScreen")
+    parser.add_argument("-n", "--no-navigation", action="store_true", default=False, dest="noNav", help="start browser without Navigation controls")
+    parser.add_argument("-c", "--config-file", action="store", default=default_config_file, dest="config_file", help="Specifiy an alternate config file")
+    parser.add_argument("-d", "--debug", action="store_true", default=False, dest="DEBUG", help="enable debugging output")
+    parser.add_argument("-t", "--timeout", action="store", type=int,  default=0, dest="timeout", help="define the timeout after which to reset the browser due to user inactivity")
+    parser.add_argument("-i", "--icon-theme", action="store", default=None, dest="icon_theme", help="override default icon theme with other Qt/KDE icon theme")
+    parser.add_argument("-z", "--zoom", action="store", type=float, default=0, dest="zoomfactor", help="set the zoom factor for web pages")
+    parser.add_argument("-p", "--popups", action="store_true", default=False, dest="allowPopups", help="allow the browser to open new windows")
+    args = parser.parse_args()
+    if not args.config_file:
+        print "No config file found or specified; using defaults."
+    DEBUG = args.DEBUG
+    main(args)
 
 
