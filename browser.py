@@ -38,7 +38,9 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(parent)
         #Load config file
         self.options = options
-        self.configuration = yaml.safe_load(open(self.options.config_file, 'r'))
+        self.configuration = {}
+        if self.options.config_file:
+            self.configuration = yaml.safe_load(open(self.options.config_file, 'r'))
         if DEBUG:
             print("loading configuration from '%s'" % options.config_file)
             print(self.configuration)
@@ -133,7 +135,7 @@ class MainWindow(QMainWindow):
             #End "if showNavigation is True" block
 
         #set hidden quit action    
-        self.really_quit = self.createAction("", self.close, QKeySequence("Ctrl+Alt+Shift+Q"), None, "")
+        self.really_quit = self.createAction("", self.close, QKeySequence("Ctrl+Alt+Q"), None, "")
         self.addAction(self.really_quit)
 
         #Call a reset function after timeout
