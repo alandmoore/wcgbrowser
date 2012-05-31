@@ -16,7 +16,7 @@ Features
 ========
 
 - Up-to-date webkit rendering
-- text-based, ini-style configuration
+- text-based, YAML configuration
 - (Optional) inactivity timeout
 - Popups/open-in-new-window can be disabled
 - Minimal, no-clutter interface simple for the general public.
@@ -25,9 +25,9 @@ Features
 Requirements
 ============
 
-- Python 2.6 or higher (not sure about v 3.x yet)
+- Python 2.6 or higher (should work with python 3.x) 
 - PyQT4, preferably 4.6 or higher
-- Python configobj library (http://www.voidspace.org.uk/python/configobj.html)
+- Python YAML library (http://pyyaml.org)
 
 It should work on any platform, but it's only been tested on Debian (Squeeze) and Ubuntu (Lucid Lynx or higher)
 
@@ -35,7 +35,7 @@ It should work on any platform, but it's only been tested on Debian (Squeeze) an
 Usage
 =====
 
-The included wcgbrowser.conf file shows an actual configuration that I use at our public library system.  To use it,  copy it to /etc/wcgbrowser.conf, ~/.wcgbrowser, or specify it with the -c (--config-file) switch.  You can make the browser.py executable, or launch it using python, like so:
+The included wcgbrowser.yaml file shows an actual configuration that I use at our public library system.  To use it,  copy it to /etc/wcgbrowser.yaml, ~/.wcgbrowser.yaml, or specify it with the -c (--config-file) switch.  You can make the browser.py executable, or launch it using python, like so:
 
 python browser.py
 
@@ -49,7 +49,7 @@ The --help switch should give you an up-to-date summary of the available command
 -n, --no-navigation  Turn off the navigation panel (back, forward, home, shortcuts, etc).  Make sure your actual web application is fully navigable!
 -c, --config-file    Specify a configuration file to use
 -d, --debug          Provide debugging output
--t, --timeout        The timeout for the inactivity monitor.  After this many millisecons of inactivity, reset the browser (Why milliseconds?  Why not??)
+-t, --timeout        The timeout for the inactivity monitor.  After this many seconds of inactivity, reset the browser 
 -i, --icon-theme     The icon theme to use.  You'll need to install these themes yourself
 -z, --zoom           The default zoom factor for content.  0 ignores this.  1 is default, 2 would be double size, 0.5 would be half-size, etc.
 -p, --popups         Enable the creation of new windows when a link is clicked that opens in a new window, or javascript tries to open a window
@@ -62,6 +62,7 @@ Bugs and Limitations
 - SSL certificates don't work.  Right now WCGBrowser just ignores certificate errors completely.  I'd like to see this functioning.
 - Not sure that the -p switch actually enables popup windows in all situations. 
 - Authentication data like php sessions, apache authentication, etc are not passed to child windows; so if an authenticated site generates a new window, you won't be logged in.  Would love help with a fix here.
+- In python 3, the hidden quit key sequence "ctrl-alt-shift-Q" fails with an "ambiguous shortcut overload" error.  In python 2.x it works fine.
 
 Contributing
 ============

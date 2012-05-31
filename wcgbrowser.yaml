@@ -1,0 +1,68 @@
+# This file uses yaml syntax
+# Just like python, indentation is critical.  Use a good text editor to hack on this.
+
+
+# This is the "home page" for your kiosk.  It will start here, and return here if reset
+# Default: about:blank
+
+start_url: "http://library.williamson-tn.org"
+
+# Timeout will clear the history and reset the homepage after this number of seconds of inactivity.
+# Set to 0 to disable this feature 
+# Default: 0
+
+timeout: 1800
+
+# "zoom factor" determines the ratio for text/image scaling (like hitting ctrl-+ or ctrl-- on most browsers).  
+# 1.0 is "unzoomed", 0.5 is half-size, 2.0 is double size, etc. 
+# Default: 1.0
+
+#zoom_factor: 1.5
+
+# "allow_popups" determines whether or not hyperlinks that try to open new browser windows/tabs will be honored or ignored. 
+# Default: False
+
+#allow_popups: True
+
+# Set "fullscreen" to true to force the browser window fullscreen
+# Default: False
+
+fullscreen: False
+
+# Set "navigation" to false to hide the top navigation bar.  Note that this makes bookmarks basically useless, since they won't appear.
+# Default: True
+
+#navigation: True
+
+# "icon_theme" probably only works on Linux, but set it to an installed theme to set the icons for back/forward/reload/quit.
+# The default is whatever your qt4 is set to use.
+
+icon_theme:  "oxygen"
+
+
+# Bookmarks are set in this structure.  They will appear as buttons on the top navigation bar.
+# Each bookmark entry takes this form (note the indentation):
+# "&Button Label":
+#    url: "http://www.example.com"
+#    description: "A description of the website which will appear in the tooltip"
+#
+# The ampersand is optional, but if present the character following it will be the keyboard accelerator 
+# (e.g., in the example alt-B would activate the bookmark)
+# Default: empty
+
+bookmarks:
+  "Catalog &Home":
+    url: "http://library.williamson-tn.org" 
+    description:  "Williamson County Public Library INNOPAC search"
+
+  "&KidsOnline Catalog":
+    url: "http://library.williamson-tn.org:90"
+    description:  "KidsOnline catalog"
+
+  "Computer &Guest":
+    url:  "https://library.williamson-tn.org/selfreg/webcomp"
+    description:  "Computer Guest Pass Application"
+
+  "Commission Forum":
+    url: "http://www.williamson-tn.org/commission"
+    description:  "County Commission Public Forum"
