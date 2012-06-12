@@ -1,15 +1,22 @@
 #!/usr/bin/python
+# This is the main script for WCGBrowser, a kiosk-oriented web browser
+# Written by Alan D Moore, http://www.alandmoore.com
+# Released under the GNU GPL v3
+
+
+# PyQT imports
 from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication, QSizePolicy, QKeySequence, QToolBar 
 from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, Qt
 from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
 
+# Standard library imports
 import sys
 import os
 import argparse
-#rom configobj import ConfigObj
 import yaml
 
 class MainWindow(QMainWindow):
+    """This class is the main application class, it defines the GUI window for the browser"""
     def createAction(self, text, slot=None, shortcut=None, icon=None, tip=None, checkable=False, signal="triggered()"):
         """Borrowed from 'Rapid GUI Development with PyQT by Mark Summerset'"""
         action = QAction(text, self)
@@ -28,6 +35,7 @@ class MainWindow(QMainWindow):
         return action
 
     def onLinkClick(self, url):
+        """This function is overridden strictly for debugging purposes"""
         if DEBUG:
             if not url.isValid():
                 print("Invalid URL %s" % url)
@@ -45,9 +53,13 @@ class MainWindow(QMainWindow):
             print("loading configuration from '%s'" % options.config_file)
             print(self.configuration)
         self.build_ui(self.options, self.configuration)
+
+        #The following variable sets the error code when a page cannot be reached, either because of a generic 404, or because you've blocked it.
         self.html404 = """<h2>Unavailable</h2>
         <p>You have attempted to navigate to a page which is not accessible from this terminal.</p>
         <p><a href='%s'>Click here</a> to return to the start page.</p> """ % (self.startUrl)
+        
+        #This string is shown when sites that should be reachable (e.g. the start page) aren't.  You might want to put in contact information for your tech support, etc.
         self.htmlNetworkDown = """<h2>Network Error</h2><p>The start page, %s, cannot be reached.  This indicates a network connectivity problem.</p>
         <p>Staff, please check the following:</p>
         <ul>
@@ -69,13 +81,17 @@ class MainWindow(QMainWindow):
         ###Start GUI configuration###
         self.browserWindow = WcgWebView(allowPopups=self.allowPopups)
         self.browserWindow.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, self.allowPopups)
+
         #JavascriptCanCloseWindows is in the API documentation, but my system claims QWebSettings has no such member.
         #self.browserWindow.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, self.allowPopups)
+
         self.browserWindow.settings().setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
         self.browserWindow.settings().setAttribute(QWebSettings.PluginsEnabled, False)
         self.browserWindow.setZoomFactor(self.zoomfactor)
+
         #Supposedly this code will make certificates work, but I could never
         #get it to work right.  For now we're just ignoring them.
+
         ## config = QSslConfiguration.defaultConfiguration()
         ## certs = config.caCertificates()
         ## certs.append(QSslCertificate(QFile("somecert.crt")))
@@ -90,6 +106,8 @@ class MainWindow(QMainWindow):
         self.browserWindow.setUrl(QUrl(self.startUrl))
         if self.isFullscreen is True:
             self.showFullScreen()
+
+        #Set up the top navigation bar if it's configured to exist    
         if self.showNavigation is True:
             self.navigationBar = QToolBar("Navigation")
             self.addToolBar(Qt.TopToolBarArea, self.navigationBar)
@@ -167,6 +185,7 @@ class MainWindow(QMainWindow):
                 print(error.errorString())
 
     def onLoadFinished(self, ok):
+        """This function is called when a page load finishes.  We're checking to see if the load was successful; if it's not, we display either the 404 error, or a "network is down" message if it's the start page that failed or some random page."""
         if not ok:
             if self.browserWindow.url().host() == QUrl(self.startUrl).host():
                 self.browserWindow.setHtml(self.htmlNetworkDown, QUrl())
@@ -176,6 +195,7 @@ class MainWindow(QMainWindow):
         return True
 
     def zoom_in(self):
+        """This is the callback for the zoom in action.  Note that we cap zooming in at a factor of 3x."""
         if self.browserWindow.zoomFactor() < 3.0:
             self.browserWindow.setZoomFactor(self.browserWindow.zoomFactor() + 0.1)
             self.zoom_out_button.setEnabled(True)
@@ -183,6 +203,7 @@ class MainWindow(QMainWindow):
             self.zoom_in_button.setEnabled(False)
             
     def zoom_out(self):
+        """This is the callback for the zoom out action.  Note that we cap zooming out at 0.1x."""
         if self.browserWindow.zoomFactor() > 0.1:
             self.browserWindow.setZoomFactor(self.browserWindow.zoomFactor() - 0.1)
             self.zoom_in_button.setEnabled(True)
@@ -190,6 +211,7 @@ class MainWindow(QMainWindow):
             self.zoom_out_button.setEnabled(False)
             
 class Inactivity_Filter(QTimer):
+    """This class defines an inactivity filter, which is basically a timer that resets every time "activity" events are detected in the main application."""
     def __init__(self, timeout=0, parent=None):
         super(QTimer, self).__init__(parent)
         self.timeout = timeout * 1000 #timeout needs to be converted from seconds to milliseconds
@@ -210,10 +232,12 @@ class Inactivity_Filter(QTimer):
         return QObject.eventFilter(self, object, event)
 
 class WcgWebView(QWebView):
+    """This is the webview for the application.  It's a simple wrapper around QWebView that configures some basic settings."""
     def __init__(self, parent=None, **kwargs):
         super(WcgWebView, self).__init__(parent)
         self.allowPopups = kwargs.get('allowPopups')
     def createWindow(self, type):
+        """This function has been overridden to allow for popup windows, if that feature is enabled."""
         if self.allowPopups:
             self.popup = WcgWebView(None, allowPopups=self.allowPopups)
             return self.popup
@@ -234,12 +258,16 @@ def main(args):
 
 
 if __name__ == "__main__":
+    
+    #locate the configuration file to use.
     if os.path.isfile(os.path.expanduser("~/.wcgbrowser.yaml")):
         default_config_file =  os.path.expanduser("~/.wcgbrowser.yaml")
     elif os.path.isfile("/etc/wcgbrowser.yaml"):
         default_config_file = "/etc/wcgbrowser.yaml"
     else:
         default_config_file = None
+
+    #Parse the command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--url", action="store", dest="url", help="start browser at URL")
     parser.add_argument("-f", "--fullscreen", action="store_true", default=False, dest="isFullscreen", help="start browser FullScreen")
@@ -254,6 +282,8 @@ if __name__ == "__main__":
     if not args.config_file:
         print ("No config file found or specified; using defaults.")
     DEBUG = args.DEBUG
+
+    #run the actual application
     main(args)
 
 
