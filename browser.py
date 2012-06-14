@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
         """Borrowed from 'Rapid GUI Development with PyQT by Mark Summerset'"""
         action = QAction(text, self)
         if icon is not None:
-            action .setIcon(QIcon.fromTheme(icon, QIcon(":/%s.png" % icon)))
+            action.setIcon(QIcon.fromTheme(icon, QIcon(":/%s.png" % icon)))
         if shortcut is not None and not shortcut.isEmpty():
             action.setShortcut(shortcut)
             tip += " (%s)" % shortcut.toString()
@@ -113,13 +113,25 @@ class MainWindow(QMainWindow):
             self.addToolBar(Qt.TopToolBarArea, self.navigationBar)
             self.navigationBar.setMovable(False)
             self.navigationBar.setFloatable(False)
+
+            #Standard navigation tools
             self.back = self.browserWindow.pageAction(QWebPage.Back)
             self.forward = self.browserWindow.pageAction(QWebPage.Forward)
             self.refresh = self.browserWindow.pageAction(QWebPage.Reload)
             self.stop = self.browserWindow.pageAction(QWebPage.Stop)
-            self.quit = self.createAction("I'm &Finished", self.reset_browser, QKeySequence("Alt+F"), None, "Click here when you are done to clear your browsing history and reset the search.")
+            #The "I'm finished" button.
+            self.quit = self.createAction(
+                "I'm &Finished",
+                self.reset_browser,
+                QKeySequence("Alt+F"),
+                None,
+                "Click here when you are done. \nIt will clear your browsing history and return you to the start page."
+                )
+            #Zoom buttons
             self.zoom_in_button = self.createAction("Zoom In", self.zoom_in, QKeySequence("Alt++"), "zoom-in", "Increase the size of the text and images on the page")
             self.zoom_out_button = self.createAction("Zoom Out", self.zoom_out, QKeySequence("Alt+-"), "zoom-out", "Decrease the size of text and images on the page")
+
+            #Add all the actions to the navigation bar.
             self.navigationBar.addAction(self.back)
             self.navigationBar.addAction(self.forward)
             self.navigationBar.addAction(self.refresh)
@@ -133,7 +145,9 @@ class MainWindow(QMainWindow):
             if configuration.get("bookmarks"):
                 for bookmark in configuration.get("bookmarks").items():
                     if DEBUG:
-                        print("%s, %s, %s\n" % (bookmark[0], bookmark[1]["url"], bookmark[1]["description"]))
+                        print("Bookmark:\n" + bookmark)
+                        
+                    #Create a button for the bookmark as a QAction, which we'll add to the toolbar
                     button = self.createAction(bookmark[0],
                                            lambda url=bookmark[1].get("url"): self.browserWindow.load(QUrl(url)),
                                            QKeySequence.mnemonic(bookmark[0]),
@@ -142,9 +156,13 @@ class MainWindow(QMainWindow):
                                            )
                     self.navigationBar.addAction(button)
                 self.navigationBar.addSeparator()
+                
+            #insert an expanding spacer to push the finish button all the way to the right.
             spacer = QWidget()
             spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
             self.navigationBar.addWidget(spacer)
+
+            #add the finish button
             self.navigationBar.addAction(self.quit)
             
             #This removes the ability to toggle off the navigation bar:
@@ -152,7 +170,8 @@ class MainWindow(QMainWindow):
             self.navToggle.setVisible(False)
             #End "if showNavigation is True" block
 
-        #set hidden quit action    
+        # set hidden quit action
+        # For reasons I haven't adequately ascertained, this shortcut fails now and then claiming "Ambiguous shortcut overload".  No idea why, as it isn't consistent.
         self.really_quit = self.createAction("", self.close, QKeySequence("Ctrl+Alt+Q"), None, "")
         self.addAction(self.really_quit)
 
@@ -176,7 +195,8 @@ class MainWindow(QMainWindow):
         self.removeToolBar(self.navigationBar)
         self.build_ui(self.options, self.configuration)
 
-
+    #sslErrorHandler was overridden to ignore SSL errors, because I couldn't make certificates work.
+    #Obviously, if you're in an environment where this could be a security risk, this is bad.
     def sslErrorHandler(self, reply, errorList):
         reply.ignoreSslErrors()
         if DEBUG:
