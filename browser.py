@@ -145,7 +145,7 @@ class MainWindow(QMainWindow):
             if configuration.get("bookmarks"):
                 for bookmark in configuration.get("bookmarks").items():
                     if DEBUG:
-                        print("Bookmark:\n" + bookmark)
+                        print("Bookmark:\n" + bookmark.__str__())
                         
                     #Create a button for the bookmark as a QAction, which we'll add to the toolbar
                     button = self.createAction(bookmark[0],
@@ -260,6 +260,7 @@ class WcgWebView(QWebView):
         """This function has been overridden to allow for popup windows, if that feature is enabled."""
         if self.allowPopups:
             self.popup = WcgWebView(None, allowPopups=self.allowPopups)
+            self.popup.show()
             return self.popup
         else:
             if DEBUG:
