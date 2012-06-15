@@ -260,6 +260,8 @@ class WcgWebView(QWebView):
         """This function has been overridden to allow for popup windows, if that feature is enabled."""
         if self.allowPopups:
             self.popup = WcgWebView(None, allowPopups=self.allowPopups)
+            #This assumes the window manager has an "X" icon for closing the window somewhere to the right.
+            self.popup.setWindowTitle("Click the 'X' to close this window! ---> ")
             self.popup.show()
             return self.popup
         else:
