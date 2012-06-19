@@ -5,7 +5,7 @@
 
 
 # PyQT imports
-from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication, QSizePolicy, QKeySequence, QToolBar 
+from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication, QSizePolicy, QKeySequence, QToolBar
 from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, Qt
 from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
 
@@ -49,6 +49,8 @@ class MainWindow(QMainWindow):
         self.configuration = {}
         if self.options.config_file:
             self.configuration = yaml.safe_load(open(self.options.config_file, 'r'))
+        self.defaultUser = options.default_user or  configuration.get("default_user")
+        self.defaultPassword = options.default_password or configuration.get("default_password")
         if DEBUG:
             print("loading configuration from '%s'" % options.config_file)
             print(self.configuration)
@@ -79,7 +81,7 @@ class MainWindow(QMainWindow):
         self.showNavigation = not options.noNav and configuration.get('navigation', True)
         
         ###Start GUI configuration###
-        self.browserWindow = WcgWebView(allowPopups=self.allowPopups)
+        self.browserWindow = WcgWebView(allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword=self.defaultPassword)
         self.browserWindow.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, self.allowPopups)
 
         #JavascriptCanCloseWindows is in the API documentation, but my system claims QWebSettings has no such member.
@@ -187,8 +189,9 @@ class MainWindow(QMainWindow):
         self.connect (self.browserWindow, SIGNAL("urlChanged(QUrl)"), self.onLinkClick)
         self.connect (self.browserWindow.page().networkAccessManager(), SIGNAL("sslErrors (QNetworkReply *, const QList<QSslError> &)"), self.sslErrorHandler)
         self.connect (self.browserWindow, SIGNAL("loadFinished(bool)"), self.onLoadFinished)
-
         ###END OF CONSTRUCTOR###
+
+        
 
     def reset_browser(self):
         # self.navigationBar.clear() doesn't do its job, so remove the toolbar first, then rebuild the UI.
@@ -256,10 +259,14 @@ class WcgWebView(QWebView):
     def __init__(self, parent=None, **kwargs):
         super(WcgWebView, self).__init__(parent)
         self.allowPopups = kwargs.get('allowPopups')
+        self.defaultUser = kwargs.get('defaultUser')
+        self.defaultPassword = kwargs.get('defaultPassword')
+        self.connect (self.page().networkAccessManager(), SIGNAL("authenticationRequired(QNetworkReply * , QAuthenticator *)"), self.auth_dialog)
+
     def createWindow(self, type):
         """This function has been overridden to allow for popup windows, if that feature is enabled."""
         if self.allowPopups:
-            self.popup = WcgWebView(None, allowPopups=self.allowPopups)
+            self.popup = WcgWebView(None, allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword = self.defaultPassword)
             #This assumes the window manager has an "X" icon for closing the window somewhere to the right.
             self.popup.setWindowTitle("Click the 'X' to close this window! ---> ")
             self.popup.show()
@@ -268,6 +275,9 @@ class WcgWebView(QWebView):
             if DEBUG:
                 print ("Popup not loaded on %s" % self.url().toString())
 
+    def auth_dialog(self, reply, authenticator):
+        authenticator.setUser(self.defaultUser)
+        authenticator.setPassword(self.defaultPassword)
 
 
 
@@ -301,6 +311,8 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--icon-theme", action="store", default=None, dest="icon_theme", help="override default icon theme with other Qt/KDE icon theme")
     parser.add_argument("-z", "--zoom", action="store", type=float, default=0, dest="zoomfactor", help="set the zoom factor for web pages")
     parser.add_argument("-p", "--popups", action="store_true", default=False, dest="allowPopups", help="allow the browser to open new windows")
+    parser.add_argument("-u", "--user", action="store", dest="default_user", help="Set the default username used for URLs that require authentication")
+    parser.add_argument("-w", "--password", action="store", dest="default_password", help="Set the default password used for URLs that require authentication")
     args = parser.parse_args()
     if not args.config_file:
         print ("No config file found or specified; using defaults.")

@@ -53,6 +53,8 @@ The --help switch should give you an up-to-date summary of the available command
 -i, --icon-theme     The icon theme to use.  You'll need to install these themes yourself
 -z, --zoom           The default zoom factor for content.  0 ignores this.  1 is default, 2 would be double size, 0.5 would be half-size, etc.
 -p, --popups         Enable the creation of new windows when a link is clicked that opens in a new window, or javascript tries to open a window
+-u, --user	     Set the default username to be sent when a site requests authentication
+-w, --password	     Set the default password to be sent when a site requests authentication
 =================    =====================================================================================================================================
 
 
@@ -60,8 +62,8 @@ Bugs and Limitations
 ====================
 
 - SSL certificates don't work.  Right now WCGBrowser just ignores certificate errors completely.  I'd like to see this functioning.
-- Not sure that the -p switch actually enables popup windows in all situations. 
-- Authentication data like php sessions, apache authentication, etc are not passed to child windows; so if an authenticated site generates a new window, you won't be logged in.  Would love help with a fix here.
+- Session authentication and data (e.g. PHP sessions) is not passed to child windows.  Would love some help with this.
+- There is no password dialog when a page requests authentication.  You can set a single user/password set in the config file to be sent whenever a site does request it, or provide auth credentials in the URL (in a bookmark/start_url).  I don't think the latter authentication gets passed to child windows, sadly.
 
 
 Contributing

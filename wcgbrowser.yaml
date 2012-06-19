@@ -7,6 +7,13 @@
 
 start_url: "http://library.williamson-tn.org"
 
+# If your browser has to navigate to a password-protected site (e.g., htaccess), you can set a default
+# username and password to use.  The browser will silently send these whenever authentication is requested.
+
+#default_user: user
+#default_password: PaSsWoRd
+
+
 # Timeout will clear the history and reset the homepage after this number of seconds of inactivity.
 # Set to 0 to disable this feature 
 # Default: 0
