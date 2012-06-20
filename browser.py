@@ -49,8 +49,8 @@ class MainWindow(QMainWindow):
         self.configuration = {}
         if self.options.config_file:
             self.configuration = yaml.safe_load(open(self.options.config_file, 'r'))
-        self.defaultUser = options.default_user or  configuration.get("default_user")
-        self.defaultPassword = options.default_password or configuration.get("default_password")
+        self.defaultUser = options.default_user or  self.configuration.get("default_user")
+        self.defaultPassword = options.default_password or self.configuration.get("default_password")
         if DEBUG:
             print("loading configuration from '%s'" % options.config_file)
             print(self.configuration)
