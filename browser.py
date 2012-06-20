@@ -256,6 +256,7 @@ class WcgWebView(QWebView):
     """This is the webview for the application.  It's a simple wrapper around QWebView that configures some basic settings."""
     def __init__(self, parent=None, **kwargs):
         super(WcgWebView, self).__init__(parent)
+        self.kwargs = kwargs
         self.allowPopups = kwargs.get('allowPopups')
         self.defaultUser = kwargs.get('defaultUser')
         self.defaultPassword = kwargs.get('defaultPassword')
@@ -277,7 +278,8 @@ class WcgWebView(QWebView):
     def createWindow(self, type):
         """This function has been overridden to allow for popup windows, if that feature is enabled."""
         if self.allowPopups:
-            self.popup = WcgWebView(None, allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword = self.defaultPassword, zoomfactor = self.zoomfactor, content_handlers = self.content_handlers, allow_external_content = self.allow_external_content)
+            #self.popup = WcgWebView(None, allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword = self.defaultPassword, zoomfactor = self.zoomfactor, content_handlers = self.content_handlers, allow_external_content = self.allow_external_content)
+            self.popup = WcgWebView(None, **self.kwargs)
             #This assumes the window manager has an "X" icon for closing the window somewhere to the right.
             self.popup.setWindowTitle("Click the 'X' to close this window! ---> ")
             self.popup.show()
@@ -306,7 +308,7 @@ class WcgWebView(QWebView):
             if str(self.url().toString()) in ('', 'about:blank'):
                 self.setHtml("<H1>Downloading</h1><p>Please wait while the file <strong>%s</strong> (%s) downloads from <strong>%s</strong>." % (self.content_filename, self.content_type, content_url.toString()))
             else:
-                #print(self.url())
+                # print(self.url())
                 self.load(self.url())
             self.connect(self.reply, SIGNAL("finished()"), self.display_downloaded_content)
 
