@@ -81,15 +81,8 @@ class MainWindow(QMainWindow):
         self.showNavigation = not options.noNav and configuration.get('navigation', True)
         
         ###Start GUI configuration###
-        self.browserWindow = WcgWebView(allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword=self.defaultPassword)
-        self.browserWindow.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, self.allowPopups)
+        self.browserWindow = WcgWebView(allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword=self.defaultPassword, zoomfactor=self.zoomfactor)
 
-        #JavascriptCanCloseWindows is in the API documentation, but my system claims QWebSettings has no such member.
-        #self.browserWindow.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, self.allowPopups)
-
-        self.browserWindow.settings().setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
-        self.browserWindow.settings().setAttribute(QWebSettings.PluginsEnabled, False)
-        self.browserWindow.setZoomFactor(self.zoomfactor)
 
         #Supposedly this code will make certificates work, but I could never
         #get it to work right.  For now we're just ignoring them.
@@ -261,12 +254,22 @@ class WcgWebView(QWebView):
         self.allowPopups = kwargs.get('allowPopups')
         self.defaultUser = kwargs.get('defaultUser')
         self.defaultPassword = kwargs.get('defaultPassword')
+        self.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, self.allowPopups)
+        #JavascriptCanCloseWindows is in the API documentation, but my system claims QWebSettings has no such member.
+        #self.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, self.allowPopups)
+        self.settings().setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
+        self.settings().setAttribute(QWebSettings.PluginsEnabled, False)
+        self.zoomfactor = kwargs.get("zoomfactor", 1)
+        self.setZoomFactor(self.zoomfactor)
+
+
+        #connections for wcgwebview
         self.connect (self.page().networkAccessManager(), SIGNAL("authenticationRequired(QNetworkReply * , QAuthenticator *)"), self.auth_dialog)
 
     def createWindow(self, type):
         """This function has been overridden to allow for popup windows, if that feature is enabled."""
         if self.allowPopups:
-            self.popup = WcgWebView(None, allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword = self.defaultPassword)
+            self.popup = WcgWebView(None, allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword = self.defaultPassword, zoomfactor = self.zoomfactor)
             #This assumes the window manager has an "X" icon for closing the window somewhere to the right.
             self.popup.setWindowTitle("Click the 'X' to close this window! ---> ")
             self.popup.show()
@@ -276,6 +279,7 @@ class WcgWebView(QWebView):
                 print ("Popup not loaded on %s" % self.url().toString())
 
     def auth_dialog(self, reply, authenticator):
+        """This is called when a page requests authentication.  It might be nice to actually have a dialog here, but for now we just use the default credentials from the config file."""
         authenticator.setUser(self.defaultUser)
         authenticator.setPassword(self.defaultPassword)
 
