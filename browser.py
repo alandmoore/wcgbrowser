@@ -6,14 +6,17 @@
 
 # PyQT imports
 from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication, QSizePolicy, QKeySequence, QToolBar
-from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, Qt
+from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, QDir
 from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
+from PyQt4.QtNetwork import QNetworkRequest
 
 # Standard library imports
 import sys
 import os
 import argparse
 import yaml
+import re
+import subprocess
 
 class MainWindow(QMainWindow):
     """This class is the main application class, it defines the GUI window for the browser"""
@@ -51,6 +54,7 @@ class MainWindow(QMainWindow):
             self.configuration = yaml.safe_load(open(self.options.config_file, 'r'))
         self.defaultUser = options.default_user or  self.configuration.get("default_user")
         self.defaultPassword = options.default_password or self.configuration.get("default_password")
+        
         if DEBUG:
             print("loading configuration from '%s'" % options.config_file)
             print(self.configuration)
@@ -79,9 +83,10 @@ class MainWindow(QMainWindow):
         self.allowPopups = options.allowPopups or configuration.get("allow_popups", False) 
         self.isFullscreen = options.isFullscreen or configuration.get("fullscreen", False) 
         self.showNavigation = not options.noNav and configuration.get('navigation', True)
-        
+        self.content_handlers = self.configuration.get("content_handlers", {})
+        self.allow_external_content = self.configuration.get("allow_external_content", False)
         ###Start GUI configuration###
-        self.browserWindow = WcgWebView(allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword=self.defaultPassword, zoomfactor=self.zoomfactor)
+        self.browserWindow = WcgWebView(allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword=self.defaultPassword, zoomfactor=self.zoomfactor, content_handlers=self.content_handlers, allow_external_content = self.allow_external_content)
 
 
         #Supposedly this code will make certificates work, but I could never
@@ -260,16 +265,19 @@ class WcgWebView(QWebView):
         self.settings().setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
         self.settings().setAttribute(QWebSettings.PluginsEnabled, False)
         self.zoomfactor = kwargs.get("zoomfactor", 1)
+        self.allow_external_content = kwargs.get('allow_external_content')
+        self.page().setForwardUnsupportedContent(self.allow_external_content)
+        self.content_handlers = kwargs.get("content_handlers", {})
         self.setZoomFactor(self.zoomfactor)
-
 
         #connections for wcgwebview
         self.connect (self.page().networkAccessManager(), SIGNAL("authenticationRequired(QNetworkReply * , QAuthenticator *)"), self.auth_dialog)
-
+        self.connect(self.page(), SIGNAL("unsupportedContent(QNetworkReply *)"), self.handle_unsupported_content)
+        
     def createWindow(self, type):
         """This function has been overridden to allow for popup windows, if that feature is enabled."""
         if self.allowPopups:
-            self.popup = WcgWebView(None, allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword = self.defaultPassword, zoomfactor = self.zoomfactor)
+            self.popup = WcgWebView(None, allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword = self.defaultPassword, zoomfactor = self.zoomfactor, content_handlers = self.content_handlers, allow_external_content = self.allow_external_content)
             #This assumes the window manager has an "X" icon for closing the window somewhere to the right.
             self.popup.setWindowTitle("Click the 'X' to close this window! ---> ")
             self.popup.show()
@@ -283,8 +291,42 @@ class WcgWebView(QWebView):
         authenticator.setUser(self.defaultUser)
         authenticator.setPassword(self.defaultPassword)
 
+    def handle_unsupported_content(self, reply):
+        """Called basically when the reply from the request is not HTML or something else renderable by qwebview"""
+        self.reply = reply
+        self.content_type = self.reply.header(QNetworkRequest.ContentTypeHeader).toString()
+        self.content_filename = re.match('.*;\s*filename=(.*);', self.reply.rawHeader('Content-Disposition'))
+        self.content_filename =QUrl.fromPercentEncoding((self.content_filename and self.content_filename.group(1)) or '')
+        content_url = self.reply.url()
+        if DEBUG:
+            print("Loading url %s of type %s" % (content_url.toString(), self.content_type))
+        if not self.content_handlers.get(str(self.content_type)):
+            self.setHtml("<h1>Failed: unrenderable content</h1><p>The browser does not know how to handle the content type <strong>%s</strong> of the file <strong>%s</strong> supplied by <strong>%s</strong>.</p>" % (self.content_type,  self.content_filename,  content_url.toString()))
+        else:
+            if str(self.url().toString()) in ('', 'about:blank'):
+                self.setHtml("<H1>Downloading</h1><p>Please wait while the file <strong>%s</strong> (%s) downloads from <strong>%s</strong>." % (self.content_filename, self.content_type, content_url.toString()))
+            else:
+                #print(self.url())
+                self.load(self.url())
+            self.connect(self.reply, SIGNAL("finished()"), self.display_downloaded_content)
+
+    def display_downloaded_content(self):
+        """Called when an unsupported content type is finished downloading."""
+        file_path = QDir.toNativeSeparators(QDir.tempPath() + "/XXXXXX_" + self.content_filename)
+        myfile = QTemporaryFile(file_path)
+        myfile.setAutoRemove(False)
+        if (myfile.open()):
+            myfile.write(self.reply.readAll())
+            myfile.close()
+            subprocess.Popen([self.content_handlers.get(str(self.content_type)), myfile.fileName()])
+
+            #Sometimes downloading files opens an empty window.  So if the current window has no URL, close it.
+            if(str(self.url().toString()) in ('', 'about:blank')):
+                self.close()
 
 
+        
+                    
 ######### Main application code begins here ###################
 
 def main(args):

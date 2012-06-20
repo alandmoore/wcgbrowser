@@ -73,3 +73,22 @@ bookmarks:
   "Commission Forum":
     url: "http://www.williamson-tn.org/commission"
     description:  "County Commission Public Forum"
+
+
+# External Content
+# If allow_external_content is set to True, clicking a link to an un-renderable MIME-type (PDF, for example)
+# will try to open the content in a specified external application.  If it's false, it will ignore the request.
+# Default: False
+
+#allow_external_content: True
+
+# If you're allowing external content, then you need to specify what to do with a given MIME type.
+# Otherwise, the user will get an error indicating the browser doesn't know what to do with it.
+# Content handlers for external files can be specified here
+# The format is 
+# "content-type": "program to open with"
+# The filename of the downloaded data will be passed as an argument
+
+content_handlers:
+  "application/pdf": "acroread"
+  "application/vnd.oasis.opendocument.text": "libreoffice"

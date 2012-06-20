@@ -20,7 +20,7 @@ Features
 - (Optional) inactivity timeout
 - Popups/open-in-new-window can be disabled
 - Minimal, no-clutter interface simple for the general public.
-
+- configurable handling of external MIME-types (PDF, etc)
 
 Requirements
 ============
@@ -64,7 +64,7 @@ Bugs and Limitations
 - SSL certificates don't work.  Right now WCGBrowser just ignores certificate errors completely.  I'd like to see this functioning.
 - Session authentication and data (e.g. PHP sessions) is not passed to child windows.  Would love some help with this.
 - There is no password dialog when a page requests authentication.  You can set a single user/password set in the config file to be sent whenever a site does request it, or provide auth credentials in the URL (in a bookmark/start_url).  I don't think the latter authentication gets passed to child windows, sadly.
-
+- Mime type handling is a little rough still, and you're bound to get 404 or network errors attempting to download documents when it's disabled.
 
 Contributing
 ============
