@@ -41,21 +41,22 @@ python browser.py
 
 The --help switch should give you an up-to-date summary of the available command-line switches, but here are a few important ones:
 
-=================    =====================================================================================================================================
- Switch              Description
-=================    =====================================================================================================================================
--l, --url            The "start location" for the browser.  This is the initial URL it will load, and where it will return when reset.
--f, --fullscreen     Makes the window fill the screen, no window decorations
--n, --no-navigation  Turn off the navigation panel (back, forward, home, shortcuts, etc).  Make sure your actual web application is fully navigable!
--c, --config-file    Specify a configuration file to use
--d, --debug          Provide debugging output
--t, --timeout        The timeout for the inactivity monitor.  After this many seconds of inactivity, reset the browser 
--i, --icon-theme     The icon theme to use.  You'll need to install these themes yourself
--z, --zoom           The default zoom factor for content.  0 ignores this.  1 is default, 2 would be double size, 0.5 would be half-size, etc.
--p, --popups         Enable the creation of new windows when a link is clicked that opens in a new window, or javascript tries to open a window
--u, --user	     Set the default username to be sent when a site requests authentication
--w, --password	     Set the default password to be sent when a site requests authentication
-=================    =====================================================================================================================================
+====================    =====================================================================================================================================
+ Switch                 Description
+====================    =====================================================================================================================================
+-l, --url               The "start location" for the browser.  This is the initial URL it will load, and where it will return when reset.
+-f, --fullscreen        Makes the window fill the screen, no window decorations
+-n, --no-navigation     Turn off the navigation panel (back, forward, home, shortcuts, etc).  Make sure your actual web application is fully navigable!
+-c, --config-file       Specify a configuration file to use
+-d, --debug             Provide debugging output
+-t, --timeout           The timeout for the inactivity monitor.  After this many seconds of inactivity, reset the browser 
+-i, --icon-theme        The icon theme to use.  You'll need to install these themes yourself
+-z, --zoom              The default zoom factor for content.  0 ignores this.  1 is default, 2 would be double size, 0.5 would be half-size, etc.
+-p, --popups            Enable the creation of new windows when a link is clicked that opens in a new window, or javascript tries to open a window
+-u, --user	        Set the default username to be sent when a site requests authentication
+-w, --password	        Set the default password to be sent when a site requests authentication
+-e, --allow_external    Allow the browser to open content in external programs via MIME type
+====================    =====================================================================================================================================
 
 
 Bugs and Limitations
