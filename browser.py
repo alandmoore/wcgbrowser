@@ -37,13 +37,6 @@ class MainWindow(QMainWindow):
             action.setCheckable()
         return action
 
-    def onLinkClick(self, url):
-        """This function is overridden strictly for debugging purposes"""
-        if DEBUG:
-            if not url.isValid():
-                print("Invalid URL %s" % url)
-            else:
-                print("Load URL %s" %url)
                                
     def __init__(self, options, parent = None):
         super(MainWindow, self).__init__(parent)
@@ -84,7 +77,7 @@ class MainWindow(QMainWindow):
         self.isFullscreen = options.isFullscreen or configuration.get("fullscreen", False) 
         self.showNavigation = not options.noNav and configuration.get('navigation', True)
         self.content_handlers = self.configuration.get("content_handlers", {})
-        self.allow_external_content = self.configuration.get("allow_external_content", False)
+        self.allow_external_content = options.allow_external_content or self.configuration.get("allow_external_content", False)
         ###Start GUI configuration###
         self.browserWindow = WcgWebView(allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword=self.defaultPassword, zoomfactor=self.zoomfactor, content_handlers=self.content_handlers, allow_external_content = self.allow_external_content)
 
@@ -184,8 +177,6 @@ class MainWindow(QMainWindow):
 
         
         ###CONNECTIONS### 
-        self.connect (self.browserWindow, SIGNAL("urlChanged(QUrl)"), self.onLinkClick)
-        self.connect (self.browserWindow.page().networkAccessManager(), SIGNAL("sslErrors (QNetworkReply *, const QList<QSslError> &)"), self.sslErrorHandler)
         self.connect (self.browserWindow, SIGNAL("loadFinished(bool)"), self.onLoadFinished)
         ###END OF CONSTRUCTOR###
 
@@ -196,14 +187,6 @@ class MainWindow(QMainWindow):
         self.removeToolBar(self.navigationBar)
         self.build_ui(self.options, self.configuration)
 
-    #sslErrorHandler was overridden to ignore SSL errors, because I couldn't make certificates work.
-    #Obviously, if you're in an environment where this could be a security risk, this is bad.
-    def sslErrorHandler(self, reply, errorList):
-        reply.ignoreSslErrors()
-        if DEBUG:
-            print ("SSL error ignored")
-            for error in errorList:
-                print(error.errorString())
 
     def onLoadFinished(self, ok):
         """This function is called when a page load finishes.  We're checking to see if the load was successful; if it's not, we display either the 404 error, or a "network is down" message if it's the start page that failed or some random page."""
@@ -276,7 +259,9 @@ class WcgWebView(QWebView):
         #connections for wcgwebview
         self.connect (self.page().networkAccessManager(), SIGNAL("authenticationRequired(QNetworkReply * , QAuthenticator *)"), self.auth_dialog)
         self.connect(self.page(), SIGNAL("unsupportedContent(QNetworkReply *)"), self.handle_unsupported_content)
-        
+        self.connect (self.page().networkAccessManager(), SIGNAL("sslErrors (QNetworkReply *, const QList<QSslError> &)"), self.sslErrorHandler)
+        self.connect (self, SIGNAL("urlChanged(QUrl)"), self.onLinkClick)
+
     def createWindow(self, type):
         """This function has been overridden to allow for popup windows, if that feature is enabled."""
         if self.allowPopups:
@@ -288,6 +273,15 @@ class WcgWebView(QWebView):
         else:
             if DEBUG:
                 print ("Popup not loaded on %s" % self.url().toString())
+
+    #sslErrorHandler was overridden to ignore SSL errors, because I couldn't make certificates work.
+    #Obviously, if you're in an environment where this could be a security risk, this is bad.
+    def sslErrorHandler(self, reply, errorList):
+        reply.ignoreSslErrors()
+        if DEBUG:
+            print ("SSL error ignored")
+            for error in errorList:
+                print(error.errorString())
 
     def auth_dialog(self, reply, authenticator):
         """This is called when a page requests authentication.  It might be nice to actually have a dialog here, but for now we just use the default credentials from the config file."""
@@ -327,7 +321,15 @@ class WcgWebView(QWebView):
             if(str(self.url().toString()) in ('', 'about:blank')):
                 self.close()
 
+    def onLinkClick(self, url):
+        """This function is overridden strictly for debugging purposes"""
+        if DEBUG:
+            if not url.isValid():
+                print("Invalid URL %s" % url.toString())
+            else:
+                print("Load URL %s" %url.toString())
 
+#### END WCGWEBVIEW DEFINITION ####
         
                     
 ######### Main application code begins here ###################
@@ -351,17 +353,18 @@ if __name__ == "__main__":
 
     #Parse the command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("-l", "--url", action="store", dest="url", help="start browser at URL")
-    parser.add_argument("-f", "--fullscreen", action="store_true", default=False, dest="isFullscreen", help="start browser FullScreen")
-    parser.add_argument("-n", "--no-navigation", action="store_true", default=False, dest="noNav", help="start browser without Navigation controls")
+    parser.add_argument("-l", "--url", action="store", dest="url", help="Start browser at URL")
+    parser.add_argument("-f", "--fullscreen", action="store_true", default=False, dest="isFullscreen", help="Start browser FullScreen")
+    parser.add_argument("-n", "--no-navigation", action="store_true", default=False, dest="noNav", help="Start browser without Navigation controls")
     parser.add_argument("-c", "--config-file", action="store", default=default_config_file, dest="config_file", help="Specifiy an alternate config file")
-    parser.add_argument("-d", "--debug", action="store_true", default=False, dest="DEBUG", help="enable debugging output")
-    parser.add_argument("-t", "--timeout", action="store", type=int,  default=0, dest="timeout", help="define the timeout in seconds after which to reset the browser due to user inactivity")
+    parser.add_argument("-d", "--debug", action="store_true", default=False, dest="DEBUG", help="Enable debugging output")
+    parser.add_argument("-t", "--timeout", action="store", type=int,  default=0, dest="timeout", help="Define the timeout in seconds after which to reset the browser due to user inactivity")
     parser.add_argument("-i", "--icon-theme", action="store", default=None, dest="icon_theme", help="override default icon theme with other Qt/KDE icon theme")
-    parser.add_argument("-z", "--zoom", action="store", type=float, default=0, dest="zoomfactor", help="set the zoom factor for web pages")
-    parser.add_argument("-p", "--popups", action="store_true", default=False, dest="allowPopups", help="allow the browser to open new windows")
+    parser.add_argument("-z", "--zoom", action="store", type=float, default=0, dest="zoomfactor", help="Set the zoom factor for web pages")
+    parser.add_argument("-p", "--popups", action="store_true", default=False, dest="allowPopups", help="Allow the browser to open new windows")
     parser.add_argument("-u", "--user", action="store", dest="default_user", help="Set the default username used for URLs that require authentication")
     parser.add_argument("-w", "--password", action="store", dest="default_password", help="Set the default password used for URLs that require authentication")
+    parser.add_argument("-e", "--allow_external", action="store_true", default=False, dest='allow_external_content', help="Allow the browser to open content in external programs.")
     args = parser.parse_args()
     if not args.config_file:
         print ("No config file found or specified; using defaults.")
