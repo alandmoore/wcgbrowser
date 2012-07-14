@@ -28,6 +28,7 @@ Requirements
 - Python 2.6 or higher (should work with python 3.x) 
 - PyQT4, preferably 4.6 or higher
 - Python YAML library (http://pyyaml.org)
+- Python argparse library
 
 It should work on any platform, but it's only been tested on Debian (Squeeze) and Ubuntu (Lucid Lynx or higher)
 
@@ -35,9 +36,9 @@ It should work on any platform, but it's only been tested on Debian (Squeeze) an
 Usage
 =====
 
-The included wcgbrowser.yaml file shows an actual configuration that I use at our public library system.  To use it,  copy it to /etc/wcgbrowser.yaml, ~/.wcgbrowser.yaml, or specify it with the -c (--config-file) switch.  You can make the browser.py executable, or launch it using python, like so:
+The included wcgbrowser.yaml file shows an actual configuration that I use at our public library system.  To use it,  copy it to /etc/wcgbrowser.yaml, ~/.wcgbrowser.yaml, or specify it with the -c (--config-file) switch.  You can make the browser.py executable, or launch it using python, like so::
 
-python browser.py
+    python browser.py
 
 The --help switch should give you an up-to-date summary of the available command-line switches, but here are a few important ones:
 
@@ -62,8 +63,7 @@ Bugs and Limitations
 ====================
 
 - SSL certificates don't work.  Right now WCGBrowser just ignores certificate errors completely.  I'd like to see this functioning.
-- Session authentication and data (e.g. PHP sessions) is not passed to child windows.  Would love some help with this.
-- There is no password dialog when a page requests authentication.  You can set a single user/password set in the config file to be sent whenever a site does request it, or provide auth credentials in the URL (in a bookmark/start_url).  I don't think the latter authentication gets passed to child windows, sadly.
+- There is no password dialog when a page requests authentication.  You can set a single user/password set in the config file to be sent whenever a site does request it, or provide auth credentials in the URL (in a bookmark/start_url).
 - Mime type handling is a little rough still, and you're bound to get 404 or network errors attempting to download documents when it's disabled.
 
 Contributing

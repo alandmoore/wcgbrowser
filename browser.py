@@ -8,7 +8,7 @@
 from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication, QSizePolicy, QKeySequence, QToolBar
 from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, QDir
 from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
-from PyQt4.QtNetwork import QNetworkRequest
+from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager
 
 # Standard library imports
 import sys
@@ -257,9 +257,11 @@ class WcgWebView(QWebView):
     def __init__(self, parent=None, **kwargs):
         super(WcgWebView, self).__init__(parent)
         self.kwargs = kwargs
+        self.nam = kwargs.get('networkAccessManager') or QNetworkAccessManager()
+        self.page().setNetworkAccessManager(self.nam)
         self.allowPopups = kwargs.get('allowPopups')
-        self.defaultUser = kwargs.get('defaultUser')
-        self.defaultPassword = kwargs.get('defaultPassword')
+        self.defaultUser = kwargs.get('defaultUser', '')
+        self.defaultPassword = kwargs.get('defaultPassword', '')
         self.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, self.allowPopups)
         #JavascriptCanCloseWindows is in the API documentation, but my system claims QWebSettings has no such member.
         #self.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, self.allowPopups)
@@ -278,8 +280,7 @@ class WcgWebView(QWebView):
     def createWindow(self, type):
         """This function has been overridden to allow for popup windows, if that feature is enabled."""
         if self.allowPopups:
-            #self.popup = WcgWebView(None, allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword = self.defaultPassword, zoomfactor = self.zoomfactor, content_handlers = self.content_handlers, allow_external_content = self.allow_external_content)
-            self.popup = WcgWebView(None, **self.kwargs)
+            self.popup = WcgWebView(None, networkAccessManager=self.nam, **self.kwargs)
             #This assumes the window manager has an "X" icon for closing the window somewhere to the right.
             self.popup.setWindowTitle("Click the 'X' to close this window! ---> ")
             self.popup.show()
