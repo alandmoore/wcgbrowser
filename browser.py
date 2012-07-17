@@ -71,6 +71,7 @@ class MainWindow(QMainWindow):
     def build_ui(self, options, configuration):
         self.startUrl = options.url or configuration.get("start_url", "about:blank") 
         inactivity_timeout = options.timeout or int(configuration.get("timeout", 0))
+        timeout_mode = configuration.get('timeout_mode', 'reset')
         self.icon_theme = options.icon_theme or configuration.get("icon_theme", None)
         self.zoomfactor = options.zoomfactor or float(configuration.get("zoom_factor") or 1.0)
         self.allowPopups = options.allowPopups or configuration.get("allow_popups", False) 
@@ -78,6 +79,11 @@ class MainWindow(QMainWindow):
         self.showNavigation = not options.noNav and configuration.get('navigation', True)
         self.content_handlers = self.configuration.get("content_handlers", {})
         self.allow_external_content = options.allow_external_content or self.configuration.get("allow_external_content", False)
+        self.quit_button_mode = self.configuration.get("quit_button_mode", 'reset')
+        self.quit_button_text = self.configuration.get("quit_button_text", "I'm &Finished")
+
+        qb_mode_callbacks = {'close':self.close, 'reset':self.reset_browser}
+    
         ###Start GUI configuration###
         self.browserWindow = WcgWebView(allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword=self.defaultPassword, zoomfactor=self.zoomfactor, content_handlers=self.content_handlers, allow_external_content = self.allow_external_content)
 
@@ -114,8 +120,8 @@ class MainWindow(QMainWindow):
             self.stop = self.browserWindow.pageAction(QWebPage.Stop)
             #The "I'm finished" button.
             self.quit = self.createAction(
-                "I'm &Finished",
-                self.reset_browser,
+                self.quit_button_text,
+                qb_mode_callbacks.get(self.quit_button_mode, self.reset_browser),
                 QKeySequence("Alt+F"),
                 None,
                 "Click here when you are done. \nIt will clear your browsing history and return you to the start page."
@@ -173,7 +179,7 @@ class MainWindow(QMainWindow):
             self.ef = Inactivity_Filter(inactivity_timeout)
             self.installEventFilter(self.ef)
             self.browserWindow.page().installEventFilter(self.ef)
-            self.connect(self.ef, SIGNAL("timeout()"), self.reset_browser)
+            self.connect(self.ef, SIGNAL("timeout()"), qb_mode_callbacks.get(timeout_mode, self.reset_browser))
 
         
         ###CONNECTIONS### 

@@ -14,11 +14,22 @@ start_url: "http://library.williamson-tn.org"
 #default_password: PaSsWoRd
 
 
-# Timeout will clear the history and reset the homepage after this number of seconds of inactivity.
+# Timeout will either clear the history and reset the homepage, or close the program
+# after this number of seconds of inactivity.
+# behavior is set with "timeout_mode" (see below)
 # Set to 0 to disable this feature 
 # Default: 0
 
 timeout: 1800
+
+# "timeout_mode" sets the behavior for the timeout feature
+# Valid options are 'close' or 'reset'
+# 'close' will exit the program
+# 'reset' will clear the history and go back to the start URL
+# default is 'reset'
+
+#timeout_mode: 'close'
+
 
 # "zoom factor" determines the ratio for text/image scaling (like hitting ctrl-+ or ctrl-- on most browsers).  
 # 1.0 is "unzoomed", 0.5 is half-size, 2.0 is double size, etc. 
@@ -45,6 +56,19 @@ fullscreen: False
 # The default is whatever your qt4 is set to use.
 
 icon_theme:  "oxygen"
+
+
+# "quit_button_text" changes the text on the quit/reset button at the upper right
+# default is "I'm Finished"
+
+#quit_button_text: "Quit"
+
+# "quit_button_mode" can be either 'close' or 'reset'
+# 'close' will cause the button to exit the program
+# 'reset' will simply clear the browser history and return to the main page.
+# default behavior is 'reset'
+
+#quit_button_mode: 'close'
 
 
 # Bookmarks are set in this structure.  They will appear as buttons on the top navigation bar.

@@ -60,6 +60,60 @@ The --help switch should give you an up-to-date summary of the available command
 ====================    =====================================================================================================================================
 
 
+Configuration File
+==================
+
+The sample configuration file is fully commented, and should be pretty easy to configure if you just read through it.  In case you just want to start from scratch, here are the current configuration options available for the application.
+
+====================== ===============    ===============================================================================================================================================================================================================================================================
+Option Name            Default Value      Explanation
+====================== ===============    ===============================================================================================================================================================================================================================================================
+start_url              about:blank        The starting URL or "home page"
+default_user           (empty)            default username to send when pages request authentication
+default_password       (empty)            default password to send when pages request authentication
+timeout                0                  Number of seconds of inactivity before the browser closes or resets itself. A value of 0 disables the feature.
+timeout_mode           reset              The action performed on inactivity timeout.  Values can be "reset" (to return to the start URL and clear history) or "close" (to close the program)
+zoom_factor            1.0                The amount of zoom applied to pages.  .5 is half size, 2.0 is double size, etc.  
+allow_popups           False              Whether or not to allow navigation that requires opening a new browser window, such as javascript "window.open()" calls or links with a target of "_blank".  If False, the navigation will be ignored.  If true, a new window will be created as expected.
+navigation             True               Display the navigation bar at the top (back/forward/reload/bookmarks/quit)
+icon_theme             (qt4 default)      Icon theme to use for navigation icons
+quit_button_text       "I'm &Finished"    Text to display on the quit/reset button.  Can include an accelerator indicator (&).
+quit_button_mode       reset              Just like timeout_mode, only this is the action taken when the quit button is pressed (same options)
+allow_external_content False              Whether or not to allow non-html content, e.g. PDF files.  If this is true, you need to specify a content handler for the MIME type or a 404 error, "Network Error", or blank page will likely be displayed to the user.
+====================== ===============    ===============================================================================================================================================================================================================================================================
+
+Bookmarks
+---------
+
+Bookmarks are created in a YAML list called "bookmarks" with this format::
+
+    bookmarks:
+      "Bookmark Name":
+       url: "http://bookmark.url/"
+       description: "A short description of the bookmark, for the tooltip"
+
+     "Another bookmark name":
+      url: "http://example.com/some_bookmark"
+      description: "A short description of this bookmark"
+
+Bookmark names can include an ampersand to specify an accelerator key.
+
+
+Content Handlers
+----------------
+
+If you're allowing external content to be launched, the "content_handlers" array allows you to specify in which programs the external content will open by MIME type.
+The syntax looks like this::
+
+    content_handlers:
+      "application/pdf": "xpdf"
+      "application/vnd.oasis.opendocument.text":"libreoffice"
+
+WCGBrowser will download the file to a temp directory and pass it as an argument to whatever command you specify in the second column.  
+Be aware of this, as in some cases you might want to write a wrapper script of some sort to deal with some types of files or programs that don't properly deal with arguments.
+
+
+
 Bugs and Limitations
 ====================
 
