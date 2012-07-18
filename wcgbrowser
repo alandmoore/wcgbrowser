@@ -1,0 +1,8 @@
+#!/bin/bash
+# WCGBROWSER
+# This is a sample launcher script
+# It assumes you've installed wcgbrowser to /usr/local/share
+# Edit it to fit your system
+
+cd /usr/local/share/wcgbrowser
+python browser.py -c wcgbrowser.py $@
