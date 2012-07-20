@@ -76,6 +76,7 @@ class MainWindow(QMainWindow):
         self.allowPopups = options.allowPopups or configuration.get("allow_popups", False) 
         self.isFullscreen = options.isFullscreen or configuration.get("fullscreen", False) 
         self.showNavigation = not options.noNav and configuration.get('navigation', True)
+        self.navigation_layout = configuration.get("navigation_layout", ['back', 'forward', 'refresh', 'stop', 'zoom_in', 'zoom_out', 'separator', 'bookmarks', 'separator', 'spacer', 'quit'])
         self.content_handlers = self.configuration.get("content_handlers", {})
         self.allow_external_content = options.allow_external_content or self.configuration.get("allow_external_content", False)
         self.quit_button_mode = self.configuration.get("quit_button_mode", 'reset')
@@ -121,12 +122,13 @@ class MainWindow(QMainWindow):
             self.navigationBar.setFloatable(False)
 
             #Standard navigation tools
-            self.back = self.browserWindow.pageAction(QWebPage.Back)
-            self.forward = self.browserWindow.pageAction(QWebPage.Forward)
-            self.refresh = self.browserWindow.pageAction(QWebPage.Reload)
-            self.stop = self.browserWindow.pageAction(QWebPage.Stop)
+            self.navItems = {}
+            self.navItems["back"] = self.browserWindow.pageAction(QWebPage.Back)
+            self.navItems["forward"] = self.browserWindow.pageAction(QWebPage.Forward)
+            self.navItems["refresh"] = self.browserWindow.pageAction(QWebPage.Reload)
+            self.navItems["stop"] = self.browserWindow.pageAction(QWebPage.Stop)
             #The "I'm finished" button.
-            self.quit = self.createAction(
+            self.navItems["quit"] = self.createAction(
                 self.quit_button_text,
                 qb_mode_callbacks.get(self.quit_button_mode, self.reset_browser),
                 QKeySequence("Alt+F"),
@@ -134,41 +136,36 @@ class MainWindow(QMainWindow):
                 "Click here when you are done. \nIt will clear your browsing history and return you to the start page."
                 )
             #Zoom buttons
-            self.zoom_in_button = self.createAction("Zoom In", self.zoom_in, QKeySequence("Alt++"), "zoom-in", "Increase the size of the text and images on the page")
-            self.zoom_out_button = self.createAction("Zoom Out", self.zoom_out, QKeySequence("Alt+-"), "zoom-out", "Decrease the size of text and images on the page")
+            self.navItems["zoom_in"] = self.createAction("Zoom In", self.zoom_in, QKeySequence("Alt++"), "zoom-in", "Increase the size of the text and images on the page")
+            self.navItems["zoom_out"] = self.createAction("Zoom Out", self.zoom_out, QKeySequence("Alt+-"), "zoom-out", "Decrease the size of text and images on the page")
+
 
             #Add all the actions to the navigation bar.
-            self.navigationBar.addAction(self.back)
-            self.navigationBar.addAction(self.forward)
-            self.navigationBar.addAction(self.refresh)
-            self.navigationBar.addAction(self.stop)
-            self.navigationBar.addAction(self.zoom_in_button)
-            self.navigationBar.addAction(self.zoom_out_button)
-            self.navigationBar.addSeparator()
-            #Insert bookmarks buttons here.
-            self.bookmark_buttons = []
-            if configuration.get("bookmarks"):
-                for bookmark in configuration.get("bookmarks").items():
-                    if DEBUG:
-                        print("Bookmark:\n" + bookmark.__str__())
-                        
-                    #Create a button for the bookmark as a QAction, which we'll add to the toolbar
-                    button = self.createAction(bookmark[0],
-                                           lambda url=bookmark[1].get("url"): self.browserWindow.load(QUrl(url)),
-                                           QKeySequence.mnemonic(bookmark[0]),
-                                           None,
-                                           bookmark[1].get("description")
-                                           )
-                    self.navigationBar.addAction(button)
-                self.navigationBar.addSeparator()
-
-            #insert an expanding spacer to push the finish button all the way to the right.
-            spacer = QWidget()
-            spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-            self.navigationBar.addWidget(spacer)
-
-            #add the finish button
-            self.navigationBar.addAction(self.quit)
+            for item in self.navigation_layout:
+                if item == "separator":
+                    self.navigationBar.addSeparator()
+                elif item == "spacer":
+                    #an expanding spacer.
+                    spacer = QWidget()
+                    spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+                    self.navigationBar.addWidget(spacer)
+                elif item == "bookmarks":
+                    #Insert bookmarks buttons here.
+                    self.bookmark_buttons = []
+                    if configuration.get("bookmarks"):
+                        for bookmark in configuration.get("bookmarks").items():
+                            if DEBUG:
+                                print("Bookmark:\n" + bookmark.__str__())
+                            #Create a button for the bookmark as a QAction, which we'll add to the toolbar
+                            button = self.createAction(bookmark[0],
+                                                       lambda url=bookmark[1].get("url"): self.browserWindow.load(QUrl(url)),
+                                                       QKeySequence.mnemonic(bookmark[0]),
+                                                       None,
+                                                       bookmark[1].get("description")
+                                                       )
+                            self.navigationBar.addAction(button)
+                else:
+                    self.navigationBar.addAction(self.navItems.get(item, None))
             
             #This removes the ability to toggle off the navigation bar:
             self.navToggle = self.navigationBar.toggleViewAction()
@@ -193,22 +190,21 @@ class MainWindow(QMainWindow):
         self.removeToolBar(self.navigationBar)
         self.build_ui(self.options, self.configuration)
 
-
     def zoom_in(self):
         """This is the callback for the zoom in action.  Note that we cap zooming in at a factor of 3x."""
         if self.browserWindow.zoomFactor() < 3.0:
             self.browserWindow.setZoomFactor(self.browserWindow.zoomFactor() + 0.1)
-            self.zoom_out_button.setEnabled(True)
+            self.navItems["zoom_out"].setEnabled(True)
         else:
-            self.zoom_in_button.setEnabled(False)
+            self.navItems["zoom_in"].setEnabled(False)
             
     def zoom_out(self):
         """This is the callback for the zoom out action.  Note that we cap zooming out at 0.1x."""
         if self.browserWindow.zoomFactor() > 0.1:
             self.browserWindow.setZoomFactor(self.browserWindow.zoomFactor() - 0.1)
-            self.zoom_in_button.setEnabled(True)
+            self.navItems["zoom_in"].setEnabled(True)
         else:
-            self.zoom_out_button.setEnabled(False)
+            self.navItems["zoom_out"].setEnabled(False)
             
 class Inactivity_Filter(QTimer):
     """This class defines an inactivity filter, which is basically a timer that resets every time "activity" events are detected in the main application."""
@@ -336,11 +332,8 @@ class WcgWebView(QWebView):
             else:
                 self.setHtml(self.html404, QUrl())
         return True
-
-
 #### END WCGWEBVIEW DEFINITION ####
         
-                    
 ######### Main application code begins here ###################
 
 def main(args):
@@ -348,7 +341,6 @@ def main(args):
     mainwin = MainWindow(args)
     mainwin.show()
     app.exec_()
-
 
 if __name__ == "__main__":
     
@@ -381,5 +373,3 @@ if __name__ == "__main__":
 
     #run the actual application
     main(args)
-
-

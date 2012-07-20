@@ -80,6 +80,7 @@ icon_theme             (qt4 default)      Icon theme to use for navigation icons
 quit_button_text       "I'm &Finished"    Text to display on the quit/reset button.  Can include an accelerator indicator (&).
 quit_button_mode       reset              Just like timeout_mode, only this is the action taken when the quit button is pressed (same options)
 allow_external_content False              Whether or not to allow non-html content, e.g. PDF files.  If this is true, you need to specify a content handler for the MIME type or a 404 error, "Network Error", or blank page will likely be displayed to the user.
+navigation_layout      (see below)        Sets the layout of the navigation bar.  See the detailed explanation below.
 ====================== ===============    ===============================================================================================================================================================================================================================================================
 
 Bookmarks
@@ -113,6 +114,20 @@ WCGBrowser will download the file to a temp directory and pass it as an argument
 Be aware of this, as in some cases you might want to write a wrapper script of some sort to deal with some types of files or programs that don't properly deal with arguments.
 
 
+Navigation Layout
+-----------------
+
+The "navigation_layout" parameter is a list of items to place on the navigation bar, if it's showing.  You can choose from the following:
+
+- "back", "forward", "refresh", "stop":  the traditional browser navigation buttons.
+- "zoom_in", "zoom_out":  the zoom buttons
+- "bookmarks":  your bookmark buttons
+- "quit":  your "I'm finished" button
+- "separator": A vertical line to separate sections
+- "spacer": an expanding spacer to push widgets around
+
+The list can be specified in any valid YAML list format, but I recommend enclosing it in square braces and separating with commas.  
+"separator" and "spacer" can be used as many times as you wish, the others should only be used once each.
 
 Bugs and Limitations
 ====================

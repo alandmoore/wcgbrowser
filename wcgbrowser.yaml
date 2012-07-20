@@ -52,6 +52,14 @@ fullscreen: False
 
 #navigation: True
 
+# "navigation_layout" is a list which sets the order and presence of buttons on the navbar from left to right.
+# Valid values include "back", "forward", "refresh", "stop", "zoom_in", "zoom_out", "bookmarks", and "quit".
+# "separator" will also add a separator line, and "spacer" will add an expanding spacer.
+# The default layout is ["back", "forward", "refresh", "stop", "zoom_in", "zoom_out", "separator", "bookmarks", "separator", "spacer", "quit"]
+# Here's an alternative layout:
+
+#navigation_layout: ["back", "forward", "refresh", "spacer", "bookmarks", "spacer", "quit"]
+
 # "icon_theme" probably only works on Linux, but set it to an installed theme to set the icons for back/forward/reload/quit.
 # The default is whatever your qt4 is set to use.
 
