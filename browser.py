@@ -36,7 +36,6 @@ class MainWindow(QMainWindow):
         if checkable:
             action.setCheckable()
         return action
-
                                
     def __init__(self, options, parent = None):
         super(MainWindow, self).__init__(parent)
@@ -47,11 +46,11 @@ class MainWindow(QMainWindow):
             self.configuration = yaml.safe_load(open(self.options.config_file, 'r'))
         self.defaultUser = options.default_user or  self.configuration.get("default_user")
         self.defaultPassword = options.default_password or self.configuration.get("default_password")
+        self.startUrl = options.url or self.configuration.get("start_url", "about:blank") 
         
         if DEBUG:
             print("loading configuration from '%s'" % options.config_file)
             print(self.configuration)
-        self.build_ui(self.options, self.configuration)
 
         #The following variable sets the error code when a page cannot be reached, either because of a generic 404, or because you've blocked it.
         self.html404 = """<h2>Unavailable</h2>
@@ -67,9 +66,9 @@ class MainWindow(QMainWindow):
         <li>Ensure other systems at your location can access the same URL</li>
         </ul>
         <p>If you continue to get this error, contact technical support</p> """ % (self.startUrl)
+        self.build_ui(self.options, self.configuration)
 
     def build_ui(self, options, configuration):
-        self.startUrl = options.url or configuration.get("start_url", "about:blank") 
         inactivity_timeout = options.timeout or int(configuration.get("timeout", 0))
         timeout_mode = configuration.get('timeout_mode', 'reset')
         self.icon_theme = options.icon_theme or configuration.get("icon_theme", None)
@@ -81,12 +80,20 @@ class MainWindow(QMainWindow):
         self.allow_external_content = options.allow_external_content or self.configuration.get("allow_external_content", False)
         self.quit_button_mode = self.configuration.get("quit_button_mode", 'reset')
         self.quit_button_text = self.configuration.get("quit_button_text", "I'm &Finished")
-
         qb_mode_callbacks = {'close':self.close, 'reset':self.reset_browser}
     
         ###Start GUI configuration###
-        self.browserWindow = WcgWebView(allowPopups=self.allowPopups, defaultUser = self.defaultUser, defaultPassword=self.defaultPassword, zoomfactor=self.zoomfactor, content_handlers=self.content_handlers, allow_external_content = self.allow_external_content)
-
+        self.browserWindow = WcgWebView(
+            allowPopups=self.allowPopups,
+            defaultUser = self.defaultUser,
+            defaultPassword=self.defaultPassword,
+            zoomfactor=self.zoomfactor,
+            content_handlers=self.content_handlers,
+            allow_external_content = self.allow_external_content,
+            html404 = self.html404,
+            htmlNetworkDown = self.htmlNetworkDown,
+            startUrl = self.startUrl
+            )
 
         #Supposedly this code will make certificates work, but I could never
         #get it to work right.  For now we're just ignoring them.
@@ -137,7 +144,6 @@ class MainWindow(QMainWindow):
             self.navigationBar.addAction(self.stop)
             self.navigationBar.addAction(self.zoom_in_button)
             self.navigationBar.addAction(self.zoom_out_button)
-            
             self.navigationBar.addSeparator()
             #Insert bookmarks buttons here.
             self.bookmark_buttons = []
@@ -155,7 +161,7 @@ class MainWindow(QMainWindow):
                                            )
                     self.navigationBar.addAction(button)
                 self.navigationBar.addSeparator()
-                
+
             #insert an expanding spacer to push the finish button all the way to the right.
             spacer = QWidget()
             spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
@@ -180,29 +186,13 @@ class MainWindow(QMainWindow):
             self.installEventFilter(self.ef)
             self.browserWindow.page().installEventFilter(self.ef)
             self.connect(self.ef, SIGNAL("timeout()"), qb_mode_callbacks.get(timeout_mode, self.reset_browser))
-
-        
-        ###CONNECTIONS### 
-        self.connect (self.browserWindow, SIGNAL("loadFinished(bool)"), self.onLoadFinished)
         ###END OF CONSTRUCTOR###
-
-        
 
     def reset_browser(self):
         # self.navigationBar.clear() doesn't do its job, so remove the toolbar first, then rebuild the UI.
         self.removeToolBar(self.navigationBar)
         self.build_ui(self.options, self.configuration)
 
-
-    def onLoadFinished(self, ok):
-        """This function is called when a page load finishes.  We're checking to see if the load was successful; if it's not, we display either the 404 error, or a "network is down" message if it's the start page that failed or some random page."""
-        if not ok:
-            if self.browserWindow.url().host() == QUrl(self.startUrl).host():
-                self.browserWindow.setHtml(self.htmlNetworkDown, QUrl())
-            else:
-                print (self.browserWindow.url().toString() + " = " + self.startUrl)
-                self.browserWindow.setHtml(self.html404, QUrl())
-        return True
 
     def zoom_in(self):
         """This is the callback for the zoom in action.  Note that we cap zooming in at a factor of 3x."""
@@ -261,12 +251,15 @@ class WcgWebView(QWebView):
         self.page().setForwardUnsupportedContent(self.allow_external_content)
         self.content_handlers = kwargs.get("content_handlers", {})
         self.setZoomFactor(self.zoomfactor)
-
+        self.html404 = kwargs.get("html404", '')
+        self.htmlNetworkDown = kwargs.get("htmlNetworkDown", '')
+        self.startUrl = kwargs.get("startUrl", '')
         #connections for wcgwebview
         self.connect (self.page().networkAccessManager(), SIGNAL("authenticationRequired(QNetworkReply * , QAuthenticator *)"), self.auth_dialog)
         self.connect(self.page(), SIGNAL("unsupportedContent(QNetworkReply *)"), self.handle_unsupported_content)
         self.connect (self.page().networkAccessManager(), SIGNAL("sslErrors (QNetworkReply *, const QList<QSslError> &)"), self.sslErrorHandler)
         self.connect (self, SIGNAL("urlChanged(QUrl)"), self.onLinkClick)
+        self.connect (self, SIGNAL("loadFinished(bool)"), self.onLoadFinished)
 
     def createWindow(self, type):
         """This function has been overridden to allow for popup windows, if that feature is enabled."""
@@ -334,6 +327,16 @@ class WcgWebView(QWebView):
                 print("Invalid URL %s" % url.toString())
             else:
                 print("Load URL %s" %url.toString())
+
+    def onLoadFinished(self, ok):
+        """This function is called when a page load finishes.  We're checking to see if the load was successful; if it's not, we display either the 404 error, or a "network is down" message if it's the start page that failed or some random page."""
+        if not ok:
+            if self.url().host() == QUrl(self.startUrl).host() and self.url().path() == QUrl(self.startUrl).path():
+                self.setHtml(self.htmlNetworkDown, QUrl())
+            else:
+                self.setHtml(self.html404, QUrl())
+        return True
+
 
 #### END WCGWEBVIEW DEFINITION ####
         
