@@ -17,7 +17,7 @@ start_url: "http://library.williamson-tn.org"
 # Timeout will either clear the history and reset the homepage, or close the program
 # after this number of seconds of inactivity.
 # behavior is set with "timeout_mode" (see below)
-# Set to 0 to disable this feature 
+# Set to 0 to disable this feature
 # Default: 0
 
 timeout: 1800
@@ -31,16 +31,22 @@ timeout: 1800
 #timeout_mode: 'close'
 
 
-# "zoom factor" determines the ratio for text/image scaling (like hitting ctrl-+ or ctrl-- on most browsers).  
-# 1.0 is "unzoomed", 0.5 is half-size, 2.0 is double size, etc. 
+# "zoom factor" determines the ratio for text/image scaling (like hitting ctrl-+ or ctrl-- on most browsers).
+# 1.0 is "unzoomed", 0.5 is half-size, 2.0 is double size, etc.
 # Default: 1.0
 
 #zoom_factor: 1.5
 
-# "allow_popups" determines whether or not hyperlinks that try to open new browser windows/tabs will be honored or ignored. 
+# "allow_popups" determines whether or not hyperlinks that try to open new browser windows/tabs will be honored or ignored.
 # Default: False
 
 #allow_popups: True
+
+# "ssl_mode" decides whether problems with ssl certificates will be ignored, or if an error will be shown
+# Possible values are "ignore" and "strict"
+# Default: "strict"
+
+ssl_mode: "ignore"
 
 # Set "fullscreen" to true to force the browser window fullscreen
 # Default: False
@@ -85,13 +91,13 @@ icon_theme:  "oxygen"
 #    url: "http://www.example.com"
 #    description: "A description of the website which will appear in the tooltip"
 #
-# The ampersand is optional, but if present the character following it will be the keyboard accelerator 
+# The ampersand is optional, but if present the character following it will be the keyboard accelerator
 # (e.g., in the example alt-B would activate the bookmark)
 # Default: empty
 
 bookmarks:
   "Catalog &Home":
-    url: "http://library.williamson-tn.org" 
+    url: "http://library.williamson-tn.org"
     description:  "Williamson County Public Library INNOPAC search"
 
   "&KidsOnline Catalog":
@@ -117,7 +123,7 @@ bookmarks:
 # If you're allowing external content, then you need to specify what to do with a given MIME type.
 # Otherwise, the user will get an error indicating the browser doesn't know what to do with it.
 # Content handlers for external files can be specified here
-# The format is 
+# The format is
 # "content-type": "program to open with"
 # The filename of the downloaded data will be passed as an argument
 

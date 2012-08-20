@@ -77,6 +77,7 @@ class MainWindow(QMainWindow):
         self.icon_theme = options.icon_theme or configuration.get("icon_theme", None)
         self.zoomfactor = options.zoomfactor or float(configuration.get("zoom_factor") or 1.0)
         self.allow_popups = options.allow_popups or configuration.get("allow_popups", False)
+        self.ssl_mode = (configuration.get("ssl_mode") in ['strict', 'ignore'] and configuration.get("ssl_mode")) or 'strict'
         self.is_fullscreen = options.is_fullscreen or configuration.get("fullscreen", False)
         self.show_navigation = not options.noNav and configuration.get('navigation', True)
         self.navigation_layout = configuration.get("navigation_layout", ['back', 'forward', 'refresh', 'stop', 'zoom_in', 'zoom_out', 'separator', 'bookmarks', 'separator', 'spacer', 'quit'])
@@ -96,7 +97,8 @@ class MainWindow(QMainWindow):
             allow_external_content=self.allow_external_content,
             html404=self.html404,
             html_network_down=self.html_network_down,
-            start_url=self.start_url
+            start_url=self.start_url,
+            ssl_mode=self.ssl_mode
             )
 
         #Supposedly this code will make certificates work, but I could never
@@ -212,7 +214,7 @@ class MainWindow(QMainWindow):
 class InactivityFilter(QTimer):
     """This class defines an inactivity filter, which is basically a timer that resets every time "activity" events are detected in the main application."""
     def __init__(self, timeout=0, parent=None):
-        super(QTimer, self).__init__(parent)
+        super(InactivityFilter, self).__init__(parent)
         self.timeout = timeout * 1000  # timeout needs to be converted from seconds to milliseconds
         self.setInterval(self.timeout)
         self.start()
@@ -254,6 +256,8 @@ class WcgWebView(QWebView):
         self.html404 = kwargs.get("html404", '')
         self.html_network_down = kwargs.get("html_network_down", '')
         self.start_url = kwargs.get("start_url", '')
+        self.ssl_mode = kwargs.get("ssl_mode", "strict")
+
         #connections for wcgwebview
         self.connect(self.page().networkAccessManager(), SIGNAL("authenticationRequired(QNetworkReply * , QAuthenticator *)"), self.auth_dialog)
         self.connect(self.page(), SIGNAL("unsupportedContent(QNetworkReply *)"), self.handle_unsupported_content)
@@ -276,11 +280,14 @@ class WcgWebView(QWebView):
     #sslErrorHandler was overridden to ignore SSL errors, because I couldn't make certificates work.
     #Obviously, if you're in an environment where this could be a security risk, this is bad.
     def sslErrorHandler(self, reply, errorList):
-        reply.ignoreSslErrors()
-        if DEBUG:
-            print ("SSL error ignored")
-            for error in errorList:
-                print(error.errorString())
+        if self.ssl_mode == 'ignore':
+            reply.ignoreSslErrors()
+            if DEBUG:
+                print ("SSL error ignored")
+                for error in errorList:
+                    print(error.errorString())
+        else:
+            self.setHtml("""<h1>Certificate Problem</h1><p>The URL <strong>%s</strong> has a problem with its SSL certificate.  For your security and protection, you will not be able to access it from this browser.</p><p>If this URL is supposed to be reachable, please contact technical support for help.</p> <p>You may <a href="%s">click here</a> to return to the home screen.</p>""" % (reply.url().toString(), self.start_url))
 
     def auth_dialog(self, reply, authenticator):
         """This is called when a page requests authentication.  It might be nice to actually have a dialog here, but for now we just use the default credentials from the config file."""
