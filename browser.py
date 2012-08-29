@@ -43,6 +43,7 @@ class MainWindow(QMainWindow):
     def __init__(self, options, parent=None):
         super(MainWindow, self).__init__(parent)
         #Load config file
+        self.setWindowTitle("Browser")
         self.options = options
         self.configuration = {}
         if self.options.config_file:
