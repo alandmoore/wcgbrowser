@@ -5,4 +5,4 @@
 # Edit it to fit your system
 
 cd /usr/local/share/wcgbrowser
-python browser.py -c wcgbrowser.py $@
+python browser.py $@
