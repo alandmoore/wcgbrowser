@@ -83,6 +83,7 @@ class MainWindow(QMainWindow):
         self.navigation_layout = configuration.get("navigation_layout", ['back', 'forward', 'refresh', 'stop', 'zoom_in', 'zoom_out', 'separator', 'bookmarks', 'separator', 'spacer', 'quit'])
         self.content_handlers = self.configuration.get("content_handlers", {})
         self.allow_external_content = options.allow_external_content or self.configuration.get("allow_external_content", False)
+        self.allow_plugins = options.allow_plugins or self.configuration.get("allow_plugins", False)
         self.quit_button_mode = self.configuration.get("quit_button_mode", 'reset')
         self.quit_button_text = self.configuration.get("quit_button_text", "I'm &Finished")
         qb_mode_callbacks = {'close': self.close, 'reset': self.reset_browser}
@@ -98,7 +99,8 @@ class MainWindow(QMainWindow):
             html404=self.html404,
             html_network_down=self.html_network_down,
             start_url=self.start_url,
-            ssl_mode=self.ssl_mode
+            ssl_mode=self.ssl_mode,
+            allow_plugins = self.allow_plugins
             )
 
         #Supposedly this code will make certificates work, but I could never
@@ -243,11 +245,12 @@ class WcgWebView(QWebView):
         self.allow_popups = kwargs.get('allow_popups')
         self.default_user = kwargs.get('default_user', '')
         self.default_password = kwargs.get('default_password', '')
+        self.allow_plugins = kwargs.get("allow_plugins", False)
         self.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, self.allow_popups)
         #JavascriptCanCloseWindows is in the API documentation, but my system claims QWebSettings has no such member.
         #self.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, self.allow_popups)
         self.settings().setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
-        self.settings().setAttribute(QWebSettings.PluginsEnabled, False)
+        self.settings().setAttribute(QWebSettings.PluginsEnabled, self.allow_plugins)
         self.zoomfactor = kwargs.get("zoomfactor", 1)
         self.allow_external_content = kwargs.get('allow_external_content')
         self.page().setForwardUnsupportedContent(self.allow_external_content)
@@ -377,6 +380,7 @@ if __name__ == "__main__":
     parser.add_argument("-u", "--user", action="store", dest="default_user", help="Set the default username used for URLs that require authentication")
     parser.add_argument("-w", "--password", action="store", dest="default_password", help="Set the default password used for URLs that require authentication")
     parser.add_argument("-e", "--allow_external", action="store_true", default=False, dest='allow_external_content', help="Allow the browser to open content in external programs.")
+    parser.add_argument("-g", "--allow_plugins", action="store_true", default=False, dest='allow_plugins', help="Allow the browser to use plugins like Flash or Java (if installed)")
     args = parser.parse_args()
     if not args.config_file:
         print ("No config file found or specified; using defaults.")

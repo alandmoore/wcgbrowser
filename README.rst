@@ -57,6 +57,7 @@ The --help switch should give you an up-to-date summary of the available command
 -u, --user	        Set the default username to be sent when a site requests authentication
 -w, --password	        Set the default password to be sent when a site requests authentication
 -e, --allow_external    Allow the browser to open content in external programs via MIME type
+-g, --allow_plugins     Allow the use of plugins like Flash, Java, etc.
 ====================    =====================================================================================================================================
 
 
@@ -82,6 +83,7 @@ quit_button_text       "I'm &Finished"    Text to display on the quit/reset butt
 quit_button_mode       reset              Just like timeout_mode, only this is the action taken when the quit button is pressed (same options)
 allow_external_content False              Whether or not to allow non-html content, e.g. PDF files.  If this is true, you need to specify a content handler for the MIME type or a 404 error, "Network Error", or blank page will likely be displayed to the user.
 navigation_layout      (see below)        Sets the layout of the navigation bar.  See the detailed explanation below.
+allow_plugins          False              If true, enables the use of plugins like flash, java, etc.
 ====================== ===============    ===============================================================================================================================================================================================================================================================
 
 Bookmarks

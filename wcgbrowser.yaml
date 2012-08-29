@@ -42,6 +42,11 @@ timeout: 1800
 
 #allow_popups: True
 
+# "allow_plugins" determins if plugins like flash or java will be enabled.  They must be installed seperately on the system, of course
+# Default: False
+
+#allow_plugins: True
+
 # "ssl_mode" decides whether problems with ssl certificates will be ignored, or if an error will be shown
 # Possible values are "ignore" and "strict"
 # Default: "strict"
