@@ -58,6 +58,14 @@ ssl_mode: "ignore"
 
 fullscreen: False
 
+# "window_size" sets the default size of the application window
+# It can be a <width>x<height> value, like "800x600"
+# or the word "max", in which case the window will maximize
+# it is ignored if "fullscreen" is set (either in the config or commandline)
+# default: None
+
+#window_size: 'max'
+
 # Set "navigation" to false to hide the top navigation bar.  Note that this makes bookmarks basically useless, since they won't appear.
 # Default: True
 

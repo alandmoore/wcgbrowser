@@ -58,6 +58,7 @@ The --help switch should give you an up-to-date summary of the available command
 -w, --password	        Set the default password to be sent when a site requests authentication
 -e, --allow_external    Allow the browser to open content in external programs via MIME type
 -g, --allow_plugins     Allow the use of plugins like Flash, Java, etc.
+--size
 ====================    =====================================================================================================================================
 
 
@@ -84,6 +85,7 @@ quit_button_mode       reset              Just like timeout_mode, only this is t
 allow_external_content False              Whether or not to allow non-html content, e.g. PDF files.  If this is true, you need to specify a content handler for the MIME type or a 404 error, "Network Error", or blank page will likely be displayed to the user.
 navigation_layout      (see below)        Sets the layout of the navigation bar.  See the detailed explanation below.
 allow_plugins          False              If true, enables the use of plugins like flash, java, etc.
+window_size            (empty)            If set, and if fullscreen is //not// set, make the window default to this size.  Can be <width>x<height> (e.g. 800x600) or 'max' for maximized.
 ====================== ===============    ===============================================================================================================================================================================================================================================================
 
 Bookmarks
@@ -135,7 +137,7 @@ The list can be specified in any valid YAML list format, but I recommend enclosi
 Bugs and Limitations
 ====================
 
-- SSL certificate handling is limited; I'd like the ability to add self-signed certificates, but I don't know how to accomplish this yet.  Right now you get "strict" or "ignore", which is not as flexible as oen might wish.
+- SSL certificate handling is limited; I'd like the ability to add self-signed certificates, but I don't know how to accomplish this yet.  Right now you get "strict" or "ignore", which is not as flexible as one might wish.
 - There is no password dialog when a page requests authentication.  You can set a single user/password set in the config file to be sent whenever a site does request it, or provide auth credentials in the URL (in a bookmark/start_url).
 - Mime type handling is a little rough still, and you're bound to get 404 or network errors attempting to download documents when it's disabled.
 

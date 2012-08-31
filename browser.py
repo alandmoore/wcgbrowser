@@ -7,7 +7,7 @@ Released under the GNU GPL v3
 
 # PyQT imports
 from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication, QSizePolicy, QKeySequence, QToolBar
-from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, QDir
+from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, QDir, QSize
 from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager
 
@@ -87,6 +87,7 @@ class MainWindow(QMainWindow):
         self.allow_plugins = options.allow_plugins or self.configuration.get("allow_plugins", False)
         self.quit_button_mode = self.configuration.get("quit_button_mode", 'reset')
         self.quit_button_text = self.configuration.get("quit_button_text", "I'm &Finished")
+        self.window_size = options.window_size or self.configuration.get("window_size", None)
         qb_mode_callbacks = {'close': self.close, 'reset': self.reset_browser}
 
         ###Start GUI configuration###
@@ -121,6 +122,15 @@ class MainWindow(QMainWindow):
         self.browser_window.setUrl(QUrl(self.start_url))
         if self.is_fullscreen is True:
             self.showFullScreen()
+        elif self.window_size.lower() == 'max':
+            self.showMaximized()
+        elif self.window_size:
+            size = re.match(r"(\d+)x(\d+)", self.window_size)
+            if size:
+                width, height = size.groups()
+                self.setFixedSize(int(width), int(height))
+            else:
+                if DEBUG: print("Ignoring invalid window size \"%s\"" % self.window_size)
 
         #Set up the top navigation bar if it's configured to exist
         if self.show_navigation is True:
@@ -382,6 +392,7 @@ if __name__ == "__main__":
     parser.add_argument("-w", "--password", action="store", dest="default_password", help="Set the default password used for URLs that require authentication")
     parser.add_argument("-e", "--allow_external", action="store_true", default=False, dest='allow_external_content', help="Allow the browser to open content in external programs.")
     parser.add_argument("-g", "--allow_plugins", action="store_true", default=False, dest='allow_plugins', help="Allow the browser to use plugins like Flash or Java (if installed)")
+    parser.add_argument("--size", action="store", dest="window_size", default=None, help="Specify the default window size in pixels (widthxheight), or 'max' to maximize")
     args = parser.parse_args()
     if not args.config_file:
         print ("No config file found or specified; using defaults.")
