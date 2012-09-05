@@ -49,7 +49,8 @@ The --help switch should give you an up-to-date summary of the available command
 -f, --fullscreen        Makes the window fill the screen, no window decorations
 -n, --no-navigation     Turn off the navigation panel (back, forward, home, shortcuts, etc).  Make sure your actual web application is fully navigable!
 -c, --config-file       Specify a configuration file to use
--d, --debug             Provide debugging output
+-d, --debug             Provide debugging output to stdout
+--debug_log             Send debugging output to specified file
 -t, --timeout           The timeout for the inactivity monitor.  After this many seconds of inactivity, reset the browser
 -i, --icon-theme        The icon theme to use.  You'll need to install these themes yourself
 -z, --zoom              The default zoom factor for content.  0 ignores this.  1 is default, 2 would be double size, 0.5 would be half-size, etc.

@@ -7,7 +7,7 @@ Released under the GNU GPL v3
 
 # PyQT imports
 from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication, QSizePolicy, QKeySequence, QToolBar
-from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, QDir, QSize
+from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, QDir
 from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager
 
@@ -18,7 +18,24 @@ import argparse
 import yaml
 import re
 import subprocess
+import datetime
 
+def debug(message):
+    if not DEBUG and not DEBUG_LOG:
+        pass
+    else:
+        message = message.__str__()
+        ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        debug_message = ts + ":: " + message
+        if DEBUG:
+            print (debug_message)
+        if DEBUG_LOG:
+            try:
+                fh = open(DEBUG_LOG, 'a')
+                fh.write(debug_message + "\n")
+                fh.close
+            except:
+                print ("unable to write to log file %s" % DEBUG_LOG)
 
 class MainWindow(QMainWindow):
     """This class is the main application class,
@@ -52,9 +69,8 @@ class MainWindow(QMainWindow):
         self.default_password = options.default_password or self.configuration.get("default_password")
         self.start_url = options.url or self.configuration.get("start_url", "about:blank")
 
-        if DEBUG:
-            print("loading configuration from '%s'" % options.config_file)
-            print(self.configuration)
+        debug("loading configuration from '%s'" % options.config_file)
+        debug(self.configuration)
 
         #The following variable sets the error code when a page cannot be reached, either because of a generic 404, or because you've blocked it.
         self.html404 = """<h2>Unavailable</h2>
@@ -116,13 +132,12 @@ class MainWindow(QMainWindow):
         if self.icon_theme is not None and QT_VERSION_STR > '4.6':
             QIcon.setThemeName(self.icon_theme)
         self.setCentralWidget(self.browser_window)
-        if DEBUG:
-            print (options)
-            print ("loading %s" % self.start_url)
+        debug(options)
+        debug("loading %s" % self.start_url)
         self.browser_window.setUrl(QUrl(self.start_url))
         if self.is_fullscreen is True:
             self.showFullScreen()
-        elif self.window_size.lower() == 'max':
+        elif self.window_size and self.window_size.lower() == 'max':
             self.showMaximized()
         elif self.window_size:
             size = re.match(r"(\d+)x(\d+)", self.window_size)
@@ -130,7 +145,7 @@ class MainWindow(QMainWindow):
                 width, height = size.groups()
                 self.setFixedSize(int(width), int(height))
             else:
-                if DEBUG: print("Ignoring invalid window size \"%s\"" % self.window_size)
+                debug("Ignoring invalid window size \"%s\"" % self.window_size)
 
         #Set up the top navigation bar if it's configured to exist
         if self.show_navigation is True:
@@ -171,8 +186,7 @@ class MainWindow(QMainWindow):
                     self.bookmark_buttons = []
                     if configuration.get("bookmarks"):
                         for bookmark in configuration.get("bookmarks").items():
-                            if DEBUG:
-                                print("Bookmark:\n" + bookmark.__str__())
+                            debug("Bookmark:\n" + bookmark.__str__())
                             #Create a button for the bookmark as a QAction, which we'll add to the toolbar
                             button = self.createAction(bookmark[0],
                                                        lambda url=bookmark[1].get("url"): self.browser_window.load(QUrl(url)),
@@ -204,6 +218,7 @@ class MainWindow(QMainWindow):
 
     def reset_browser(self):
         # self.navigation_bar.clear() doesn't do its job, so remove the toolbar first, then rebuild the UI.
+        debug("USER RESET BROWSER")
         self.removeToolBar(self.navigation_bar)
         self.build_ui(self.options, self.configuration)
 
@@ -224,6 +239,9 @@ class MainWindow(QMainWindow):
             self.nav_items["zoom_out"].setEnabled(False)
 
 
+
+### END Main Application Window Class def ###
+
 class InactivityFilter(QTimer):
     """This class defines an inactivity filter, which is basically a timer that resets every time "activity" events are detected in the main application."""
     def __init__(self, timeout=0, parent=None):
@@ -238,11 +256,9 @@ class InactivityFilter(QTimer):
             self.start(self.timeout)
             #commented this debug code, because it spits out way to much information.
             #uncomment if you're having trouble with the timeout detecting user inactivity correctly to determine what it's detecting and ignoring
-            #if DEBUG:
-            #    print ("Activity: %s type %d" % (event, event.type()))
+            #debug ("Activity: %s type %d" % (event, event.type()))
         #else:
-            #if DEBUG:
-            #    print ("Ignored event: %s type %d" % (event, event.type()))
+            #debug("Ignored event: %s type %d" % (event, event.type()))
         return QObject.eventFilter(self, object, event)
 
 
@@ -288,23 +304,21 @@ class WcgWebView(QWebView):
             self.popup.show()
             return self.popup
         else:
-            if DEBUG:
-                print ("Popup not loaded on %s" % self.url().toString())
+            debug("Popup not loaded on %s" % self.url().toString())
 
     #sslErrorHandler was overridden to ignore SSL errors, because I couldn't make certificates work.
     #Obviously, if you're in an environment where this could be a security risk, this is bad.
     def sslErrorHandler(self, reply, errorList):
         if self.ssl_mode == 'ignore':
             reply.ignoreSslErrors()
-            if DEBUG:
-                print ("SSL error ignored")
-                for error in errorList:
-                    print(error.errorString())
+            debug("SSL error ignored")
+            debug(", ".join([error.errorString() for error in errorList]))
         else:
             self.setHtml("""<h1>Certificate Problem</h1><p>The URL <strong>%s</strong> has a problem with its SSL certificate.  For your security and protection, you will not be able to access it from this browser.</p><p>If this URL is supposed to be reachable, please contact technical support for help.</p> <p>You may <a href="%s">click here</a> to return to the home screen.</p>""" % (reply.url().toString(), self.start_url))
 
     def auth_dialog(self, reply, authenticator):
         """This is called when a page requests authentication.  It might be nice to actually have a dialog here, but for now we just use the default credentials from the config file."""
+        debug("Auth required on %s" % reply.url().toString())
         authenticator.setUser(self.default_user)
         authenticator.setPassword(self.default_password)
 
@@ -315,8 +329,7 @@ class WcgWebView(QWebView):
         self.content_filename = re.match('.*;\s*filename=(.*);', self.reply.rawHeader('Content-Disposition'))
         self.content_filename = QUrl.fromPercentEncoding((self.content_filename and self.content_filename.group(1)) or '')
         content_url = self.reply.url()
-        if DEBUG:
-            print("Loading url %s of type %s" % (content_url.toString(), self.content_type))
+        debug("Loading url %s of type %s" % (content_url.toString(), self.content_type))
         if not self.content_handlers.get(str(self.content_type)):
             self.setHtml("<h1>Failed: unrenderable content</h1><p>The browser does not know how to handle the content type <strong>%s</strong> of the file <strong>%s</strong> supplied by <strong>%s</strong>.</p>" % (self.content_type, self.content_filename, content_url.toString()))
         else:
@@ -343,11 +356,10 @@ class WcgWebView(QWebView):
 
     def onLinkClick(self, url):
         """This function is overridden strictly for debugging purposes"""
-        if DEBUG:
-            if not url.isValid():
-                print("Invalid URL %s" % url.toString())
-            else:
-                print("Load URL %s" % url.toString())
+        if not url.isValid():
+            debug("Invalid URL %s" % url.toString())
+        else:
+            debug("Load URL %s" % url.toString())
 
     def onLoadFinished(self, ok):
         """This function is called when a page load finishes.  We're checking to see if the load was successful; if it's not, we display either the 404 error, or a "network is down" message if it's the start page that failed or some random page."""
@@ -383,7 +395,8 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--fullscreen", action="store_true", default=False, dest="is_fullscreen", help="Start browser FullScreen")
     parser.add_argument("-n", "--no-navigation", action="store_true", default=False, dest="noNav", help="Start browser without Navigation controls")
     parser.add_argument("-c", "--config-file", action="store", default=default_config_file, dest="config_file", help="Specifiy an alternate config file")
-    parser.add_argument("-d", "--debug", action="store_true", default=False, dest="DEBUG", help="Enable debugging output")
+    parser.add_argument("-d", "--debug", action="store_true", default=False, dest="DEBUG", help="Enable debugging output to stdout")
+    parser.add_argument("--debug_log", action="store", default=None, dest="debug_log", help="Enable debug output to the specified filename")
     parser.add_argument("-t", "--timeout", action="store", type=int, default=0, dest="timeout", help="Define the timeout in seconds after which to reset the browser due to user inactivity")
     parser.add_argument("-i", "--icon-theme", action="store", default=None, dest="icon_theme", help="override default icon theme with other Qt/KDE icon theme")
     parser.add_argument("-z", "--zoom", action="store", type=float, default=0, dest="zoomfactor", help="Set the zoom factor for web pages")
@@ -394,9 +407,10 @@ if __name__ == "__main__":
     parser.add_argument("-g", "--allow_plugins", action="store_true", default=False, dest='allow_plugins', help="Allow the browser to use plugins like Flash or Java (if installed)")
     parser.add_argument("--size", action="store", dest="window_size", default=None, help="Specify the default window size in pixels (widthxheight), or 'max' to maximize")
     args = parser.parse_args()
-    if not args.config_file:
-        print ("No config file found or specified; using defaults.")
     DEBUG = args.DEBUG
+    DEBUG_LOG = args.debug_log
+    if not args.config_file:
+        debug ("No config file found or specified; using defaults.")
 
     #run the actual application
     main(args)
