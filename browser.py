@@ -312,7 +312,7 @@ class WcgWebView(QWebView):
         if self.ssl_mode == 'ignore':
             reply.ignoreSslErrors()
             debug("SSL error ignored")
-            debug(", ".join([error.errorString() for error in errorList]))
+            debug(", ".join([str(error.errorString()) for error in errorList]))
         else:
             self.setHtml("""<h1>Certificate Problem</h1><p>The URL <strong>%s</strong> has a problem with its SSL certificate.  For your security and protection, you will not be able to access it from this browser.</p><p>If this URL is supposed to be reachable, please contact technical support for help.</p> <p>You may <a href="%s">click here</a> to return to the home screen.</p>""" % (reply.url().toString(), self.start_url))
 
