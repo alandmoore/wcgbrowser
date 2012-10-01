@@ -10,10 +10,13 @@ start_url: "http://library.williamson-tn.org"
 # The "whitelist" is a list of domains or hosts which will be matched against any requested url.
 # If the hostname or domain name doesn't match an item on the list, the user gets the "Cannot go there" message
 # see the readme file for more details on the whitelist's behavior
-# The start_url host is automatically added to the whitelist.
-# To disable whitelist filtering, just comment out whitelist or leave it empty.
+# The start_url host and bookmark hosts are automatically added to the whitelist.
+# To disable whitelist filtering, just comment out whitelist, leave it empty, or specify use "False" as the value.
+# To just whitelist the start_url host and bookmark url host(s), just put "True".
+# Otherwise, specify a list of domains or hostnames to be added to the whitelist.
 # Default: empty (disabled)
 
+#whitelist: True
 #whitelist: ["alandmoore.com", "my-content-host.example.com"]
 
 # If your browser has to navigate to a password-protected site (e.g., htaccess), you can set a default

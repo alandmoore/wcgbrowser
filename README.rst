@@ -16,12 +16,13 @@ Features
 ========
 
 - Up-to-date webkit rendering
-- text-based, YAML configuration
-- (Optional) inactivity timeout
+- Text-based, YAML configuration
+- (Optional) Inactivity timeout
 - Popups/open-in-new-window can be disabled
 - Minimal, no-clutter interface simple for the general public.
-- configurable handling of external MIME-types (PDF, etc)
-- built-in whitelisting
+- Configurable navigation bar with bookmarks
+- Configurable handling of external MIME-types (PDF, etc)
+- (Optional) Whitelisting of hosts & domains
 
 Requirements
 ============
@@ -142,18 +143,27 @@ Whitelist
 
 The whitelist feature is added as a convenience to help lock down your kiosk when you don't have complete control over all the links on your kiosk pages and want to prevent users from going off to strange sites.  It's *not* a firewall or content filter, and may not behave exactly how you expect it to; so if you plan to use it, please read a bit about what it does and what it does not do.
 
-If you don't want to use the whitelist feature, just comment it out or leave the list empty.
+If you don't want to use the whitelist feature, just comment it out, leave the list empty, or give it a value of "False".
 
 What the whitelist does
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 You give the whitelist a list of *domains* or *hosts*, like this::
 
-    whitelist = ["somehost.example.com", "some-local-host", "mydomain.org"]
+    whitelist: ["somehost.example.com", "some-local-host", "mydomain.org"]
 
 Whenever the user clicks a link or otherwise tries to navigate to a page, the hostname is extracted from the requested URL and matched against the whitelist.  If there's a match, the page is displayed; if not, the error text.
 
-The start_url host is automatically whitelisted, and subdomains of a whitelisted domain are also automatically whitelisted.  Thus, if you whitelist "example.com", then "foo.example.com" will be whitelisted as well (though "foo-example.com" will not, since that's actually a different domain).  Bookmark urls are *not* automatically whitelisted.
+Some things are automatic:
+
+ - The start_url host is automatically whitelisted
+ - Bookmark hosts are automatically whitelisted
+ - Subdomains are also automatically whitelisted.  Thus, if you whitelist "example.com", then "foo.example.com" will be whitelisted as well (though "foo-example.com" will not, since that's actually a different domain).
+
+If you just want to whitelist the start_url and bookmark urls and nothing else, you can just do this in the config::
+
+    whitelist: True
+
 
 What the whitelist doesn't do
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

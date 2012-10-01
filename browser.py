@@ -63,15 +63,16 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Browser")
         self.options = options
         self.configuration = {}
+        debug("loading configuration from '%s'" % options.config_file)
         if self.options.config_file:
             self.configuration = yaml.safe_load(open(self.options.config_file, 'r'))
+        debug(self.configuration)
         self.default_user = options.default_user or  self.configuration.get("default_user")
         self.default_password = options.default_password or self.configuration.get("default_password")
         self.start_url = options.url or self.configuration.get("start_url", "about:blank")
         self.whitelist = self.configuration.get("whitelist", False)
 
-        debug("loading configuration from '%s'" % options.config_file)
-        debug(self.configuration)
+
 
         #The following variable sets the error code when a page cannot be reached, either because of a generic 404, or because you've blocked it.
         self.html404 = """<h2>Sorry, can't go there</h2>
@@ -108,6 +109,16 @@ class MainWindow(QMainWindow):
         self.quit_button_text = self.configuration.get("quit_button_text", "I'm &Finished")
         self.window_size = options.window_size or self.configuration.get("window_size", None)
         qb_mode_callbacks = {'close': self.close, 'reset': self.reset_browser}
+        #If the whitelist is activated, add the bookmarks and start_url
+        if self.whitelist:
+            # we can just specify whitelist = True, which should whitelist just the start_url and bookmark urls.
+            if type(self.whitelist) is not list:
+                self.whitelist = []
+            self.whitelist.append(str(QUrl(self.start_url).host()))
+            bookmarks = self.configuration.get("bookmarks")
+            if bookmarks:
+                self.whitelist += [str(QUrl(b.get("url")).host()) for k,b in bookmarks.items()]
+            debug("Generated whitelist: " + str(self.whitelist))
 
         ###Start GUI configuration###
         self.browser_window = WcgWebView(
@@ -364,7 +375,7 @@ class WcgWebView(QWebView):
         if self.whitelist and not (url.host() == QUrl(self.start_url).host()):
             site_ok = False
             for whitelisted_host in self.whitelist:
-                pattern = "(^|.*\.)" + whitelisted_host + "$"
+                pattern = str("(^|.*\.)" + whitelisted_host + "$")
                 if re.match(pattern, url.host()):
                     site_ok = True
             if not site_ok:
