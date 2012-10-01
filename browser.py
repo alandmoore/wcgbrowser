@@ -68,14 +68,17 @@ class MainWindow(QMainWindow):
         self.default_user = options.default_user or  self.configuration.get("default_user")
         self.default_password = options.default_password or self.configuration.get("default_password")
         self.start_url = options.url or self.configuration.get("start_url", "about:blank")
+        self.whitelist = self.configuration.get("whitelist", False)
 
         debug("loading configuration from '%s'" % options.config_file)
         debug(self.configuration)
 
         #The following variable sets the error code when a page cannot be reached, either because of a generic 404, or because you've blocked it.
-        self.html404 = """<h2>Unavailable</h2>
-        <p>You have attempted to navigate to a page which is not accessible from this terminal.</p>
-        <p><a href='%s'>Click here</a> to return to the start page.</p> """ % (self.start_url)
+        self.html404 = """<h2>Sorry, can't go there</h2>
+        <p>This page is not available on this computer.</p>
+        <p>You can return to the <a href='%s'>start page</a>, or wait and I'll return you to the <a href='javascript: history.back();'>previous page</a>.</p>
+        <script>setTimeout('history.back()', 5000);</script>
+        """ % (self.start_url)
 
         #This string is shown when sites that should be reachable (e.g. the start page) aren't.  You might want to put in contact information for your tech support, etc.
         self.html_network_down = """<h2>Network Error</h2><p>The start page, %s, cannot be reached.  This indicates a network connectivity problem.</p>
@@ -118,7 +121,8 @@ class MainWindow(QMainWindow):
             html_network_down=self.html_network_down,
             start_url=self.start_url,
             ssl_mode=self.ssl_mode,
-            allow_plugins = self.allow_plugins
+            allow_plugins = self.allow_plugins,
+            whitelist = self.whitelist
             )
 
         #Supposedly this code will make certificates work, but I could never
@@ -287,6 +291,7 @@ class WcgWebView(QWebView):
         self.html_network_down = kwargs.get("html_network_down", '')
         self.start_url = kwargs.get("start_url", '')
         self.ssl_mode = kwargs.get("ssl_mode", "strict")
+        self.whitelist = kwargs.get("whitelist", False)
 
         #connections for wcgwebview
         self.connect(self.page().networkAccessManager(), SIGNAL("authenticationRequired(QNetworkReply * , QAuthenticator *)"), self.auth_dialog)
@@ -355,7 +360,15 @@ class WcgWebView(QWebView):
                 self.close()
 
     def onLinkClick(self, url):
-        """This function is overridden strictly for debugging purposes"""
+        #If whitelisting is enabled, and this isn't the start_url host, check the url to see if the host's domain matches.
+        if self.whitelist and not (url.host() == QUrl(self.start_url).host()):
+            site_ok = False
+            for whitelisted_host in self.whitelist:
+                pattern = "(^|.*\.)" + whitelisted_host + "$"
+                if re.match(pattern, url.host()):
+                    site_ok = True
+            if not site_ok:
+                self.setHtml(self.html404)
         if not url.isValid():
             debug("Invalid URL %s" % url.toString())
         else:

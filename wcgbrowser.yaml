@@ -7,6 +7,15 @@
 
 start_url: "http://library.williamson-tn.org"
 
+# The "whitelist" is a list of domains or hosts which will be matched against any requested url.
+# If the hostname or domain name doesn't match an item on the list, the user gets the "Cannot go there" message
+# see the readme file for more details on the whitelist's behavior
+# The start_url host is automatically added to the whitelist.
+# To disable whitelist filtering, just comment out whitelist or leave it empty.
+# Default: empty (disabled)
+
+#whitelist: ["alandmoore.com", "my-content-host.example.com"]
+
 # If your browser has to navigate to a password-protected site (e.g., htaccess), you can set a default
 # username and password to use.  The browser will silently send these whenever authentication is requested.
 

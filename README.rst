@@ -21,6 +21,7 @@ Features
 - Popups/open-in-new-window can be disabled
 - Minimal, no-clutter interface simple for the general public.
 - configurable handling of external MIME-types (PDF, etc)
+- built-in whitelisting
 
 Requirements
 ============
@@ -87,6 +88,7 @@ allow_external_content False              Whether or not to allow non-html conte
 navigation_layout      (see below)        Sets the layout of the navigation bar.  See the detailed explanation below.
 allow_plugins          False              If true, enables the use of plugins like flash, java, etc.
 window_size            (empty)            If set, and if fullscreen is //not// set, make the window default to this size.  Can be <width>x<height> (e.g. 800x600) or 'max' for maximized.
+whitelist              (empty)            A list of web domains or hosts to allow access to (see below).
 ====================== ===============    ===============================================================================================================================================================================================================================================================
 
 Bookmarks
@@ -134,6 +136,31 @@ The "navigation_layout" parameter is a list of items to place on the navigation 
 
 The list can be specified in any valid YAML list format, but I recommend enclosing it in square braces and separating with commas.
 "separator" and "spacer" can be used as many times as you wish, the others should only be used once each.
+
+Whitelist
+---------
+
+The whitelist feature is added as a convenience to help lock down your kiosk when you don't have complete control over all the links on your kiosk pages and want to prevent users from going off to strange sites.  It's *not* a firewall or content filter, and may not behave exactly how you expect it to; so if you plan to use it, please read a bit about what it does and what it does not do.
+
+If you don't want to use the whitelist feature, just comment it out or leave the list empty.
+
+What the whitelist does
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You give the whitelist a list of *domains* or *hosts*, like this::
+
+    whitelist = ["somehost.example.com", "some-local-host", "mydomain.org"]
+
+Whenever the user clicks a link or otherwise tries to navigate to a page, the hostname is extracted from the requested URL and matched against the whitelist.  If there's a match, the page is displayed; if not, the error text.
+
+The start_url host is automatically whitelisted, and subdomains of a whitelisted domain are also automatically whitelisted.  Thus, if you whitelist "example.com", then "foo.example.com" will be whitelisted as well (though "foo-example.com" will not, since that's actually a different domain).  Bookmark urls are *not* automatically whitelisted.
+
+What the whitelist doesn't do
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The whitelist does not block *content* on a whitelisted page from being displayed, regardless of where the content is hosted.  As long as the page's URL is acceptable, the content is all displayed.  So, for example, if you have your images and scripts on a separate content delivery network, you don't need to whitelist that server.  You only need to whitelist hosts/domains of pages to which the user is explicitly navigating (via hyperlink, bookmark, javascript forward, etc).
+- The whitelist cannot take an actual path or filename, nor does it check the port, protocol, username, or any other component of the URL other than the host or domain.  Sorry.
+- If you whitelist a host, its IP will *not* be automatically whitelisted (and vice-versa); nor will a fully-qualified hostname in the whitelist automatically whitelist the hostname by itself (or vice-versa).  A url is *only* allowed when its literal hostname matches a whitelist entry.
 
 Bugs and Limitations
 ====================
