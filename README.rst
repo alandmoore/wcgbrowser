@@ -90,6 +90,8 @@ navigation_layout      (see below)        Sets the layout of the navigation bar.
 allow_plugins          False              If true, enables the use of plugins like flash, java, etc.
 window_size            (empty)            If set, and if fullscreen is //not// set, make the window default to this size.  Can be <width>x<height> (e.g. 800x600) or 'max' for maximized.
 whitelist              (empty)            A list of web domains or hosts to allow access to (see below).
+page_unavailable_html  (empty)            The full path to a file containing HTML which will be displayed when a page cannot be loaded, either because it's not accessible or blocked by security restrictions.
+network_down_html      (empty)            The full path to a file containing HTML which will be displayed when the start_url page cannot be loaded, which probably indicates some kind of network error.
 ====================== ===============    ===============================================================================================================================================================================================================================================================
 
 Bookmarks
@@ -164,11 +166,14 @@ If you just want to whitelist the start_url and bookmark urls and nothing else, 
 
     whitelist: True
 
+When relying on the automatic whitelisting, it's important to understand that the complete *host* string of these URLs is whitelisted.  So for example, if your start_url is "http://example.com", "example.com" will be added to the whitelist (and thus all subdomains of example.com, such as foo.example.com, bar.example.com, etc.).  If you specify "http://www.example.com" as the start_url, though, "www.example.com" is added to the whitelist.  Thus, "foo.example.com" would *not* be whitelisted.
+
+Also note that if you whitelist a URL that just forwards you to another host, you need to specify both hosts in the whitelist.
 
 What the whitelist doesn't do
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- The whitelist does not block *content* on a whitelisted page from being displayed, regardless of where the content is hosted.  As long as the page's URL is acceptable, the content is all displayed.  So, for example, if you have your images and scripts on a separate content delivery network, you don't need to whitelist that server.  You only need to whitelist hosts/domains of pages to which the user is explicitly navigating (via hyperlink, bookmark, javascript forward, etc).
+- The whitelist does not block **content** on a whitelisted page from being displayed, regardless of where the content is hosted.  As long as the page's URL is acceptable, all the content is displayed.  So, for example, if you have your images and scripts (or ads!) on a separate content delivery network, you don't need to whitelist that server.  You only need to whitelist hosts/domains of URLs to which the user is explicitly navigating (via hyperlink, bookmark, javascript forward, etc) -- in other words, the URL that would show up in a normal browser's location bar.
 - The whitelist cannot take an actual path or filename, nor does it check the port, protocol, username, or any other component of the URL other than the host or domain.  Sorry.
 - If you whitelist a host, its IP will *not* be automatically whitelisted (and vice-versa); nor will a fully-qualified hostname in the whitelist automatically whitelist the hostname by itself (or vice-versa).  A url is *only* allowed when its literal hostname matches a whitelist entry.
 

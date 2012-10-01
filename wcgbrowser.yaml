@@ -16,7 +16,7 @@ start_url: "http://library.williamson-tn.org"
 # Otherwise, specify a list of domains or hostnames to be added to the whitelist.
 # Default: empty (disabled)
 
-#whitelist: True
+whitelist: True
 #whitelist: ["alandmoore.com", "my-content-host.example.com"]
 
 # If your browser has to navigate to a password-protected site (e.g., htaccess), you can set a default
@@ -108,6 +108,24 @@ icon_theme:  "oxygen"
 # default behavior is 'reset'
 
 #quit_button_mode: 'close'
+
+# "page_unavailable_html" is the path to a *file* that contains html to be displayed whenever a page cannot be accessed,
+# either because it's not available, or blocked due to security rules (whitelist, e.g.).
+# The file should be on the local system, and only reference local resources (css, scripts, etc).
+# It doesn't have to be a full page, or even HTML if you just want a simple text message.
+# Leave it commented to use the default text built into the browser.
+# Default: empty
+
+page_unavailable_html: "examples/custom404.html"
+
+# "network_down_html" is the path to a *file* that contains html to be displayed whenever the start_url's host cannot be reached,
+# which is very likely indicative of a network connectivity problem (rather than, say, a security restriction)
+# The file should be on the local system, and only reference local resources (css, scripts, etc).
+# It doesn't have to be a full page, or even HTML if you just want a simple text message.
+# Leave it commented to use the default text built into the browser.
+# Default: empty
+
+network_down_html: "examples/custom_network_down.html"
 
 
 # Bookmarks are set in this structure.  They will appear as buttons on the top navigation bar.

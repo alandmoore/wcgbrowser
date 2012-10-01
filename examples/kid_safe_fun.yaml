@@ -1,0 +1,23 @@
+# This is an example of how you might use wcgbrowser on a young child's computer.
+# Only the bookmarked websites are allowed, so there's no danger of the child wandering off to bad sites,
+# even if the sites have ads or links to other sites.
+# Popups are blocked so the child doesn't have to deal with multiple windows opening.  This can be changed, of course;
+# and you can, of course, add more sites.
+
+start_url: "http://www.starfall.com"
+allow_plugins: True
+allow_popups: False
+whitelist: True
+
+bookmarks:
+  "Starfall":
+    url: "http://www.starfall.com"
+    description: "Learning games at starfall.com!"
+
+  "PBS kids":
+    url: "http://pbskids.org"
+    description: "Fun and games with your PBS kids friends!"
+
+  "Scholastic":
+    url: "http://www.scholastic.com/kids/stacks/games"
+    description: "Educational games from Scholastic."

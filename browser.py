@@ -75,13 +75,22 @@ class MainWindow(QMainWindow):
 
 
         #The following variable sets the error code when a page cannot be reached, either because of a generic 404, or because you've blocked it.
+        # You can override it using the "page_unavailable_html" setting in the configuration file.
         self.html404 = """<h2>Sorry, can't go there</h2>
         <p>This page is not available on this computer.</p>
         <p>You can return to the <a href='%s'>start page</a>, or wait and I'll return you to the <a href='javascript: history.back();'>previous page</a>.</p>
         <script>setTimeout('history.back()', 5000);</script>
         """ % (self.start_url)
+        if (self.configuration.get("page_unavailable_html")):
+            try:
+                html404 = open(self.configuration.get("page_unavailable_html"), 'r').read()
+            except:
+                html404 = None
+                debug("Couldn't read file: %s" % self.configuration.get("page_unavailable_html"))
+            self.html404 = html404 or self.html404
 
         #This string is shown when sites that should be reachable (e.g. the start page) aren't.  You might want to put in contact information for your tech support, etc.
+        # You can override it use the "network_down_html" setting in the configuration file.
         self.html_network_down = """<h2>Network Error</h2><p>The start page, %s, cannot be reached.  This indicates a network connectivity problem.</p>
         <p>Staff, please check the following:</p>
         <ul>
@@ -90,6 +99,14 @@ class MainWindow(QMainWindow):
         <li>Ensure other systems at your location can access the same URL</li>
         </ul>
         <p>If you continue to get this error, contact technical support</p> """ % (self.start_url)
+        if (self.configuration.get("network_down_html")):
+            try:
+                html_network_down = open(self.configuration.get("network_down_html"), 'r').read()
+            except:
+                html_network_down = None
+                debug("Couldn't read file: %s" % self.configuration.get("network_down_html"))
+            self.html_network_down = html_network_down or self.html_network_down
+
         self.build_ui(self.options, self.configuration)
 
     def build_ui(self, options, configuration):
@@ -233,7 +250,7 @@ class MainWindow(QMainWindow):
 
     def reset_browser(self):
         # self.navigation_bar.clear() doesn't do its job, so remove the toolbar first, then rebuild the UI.
-        debug("USER RESET BROWSER")
+        debug("RESET BROWSER")
         self.removeToolBar(self.navigation_bar)
         self.build_ui(self.options, self.configuration)
 
@@ -372,7 +389,7 @@ class WcgWebView(QWebView):
 
     def onLinkClick(self, url):
         #If whitelisting is enabled, and this isn't the start_url host, check the url to see if the host's domain matches.
-        if self.whitelist and not (url.host() == QUrl(self.start_url).host()):
+        if self.whitelist and not (url.host() == QUrl(self.start_url).host()) and not str(url.toString()) == 'about:blank':
             site_ok = False
             for whitelisted_host in self.whitelist:
                 pattern = str("(^|.*\.)" + whitelisted_host + "$")
@@ -388,9 +405,11 @@ class WcgWebView(QWebView):
     def onLoadFinished(self, ok):
         """This function is called when a page load finishes.  We're checking to see if the load was successful; if it's not, we display either the 404 error, or a "network is down" message if it's the start page that failed or some random page."""
         if not ok:
-            if self.url().host() == QUrl(self.start_url).host() and self.url().path() == QUrl(self.start_url).path():
+            if self.url().host() == QUrl(self.start_url).host() and str(self.url().path()).rstrip("/") == str(QUrl(self.start_url).path()).rstrip("/"):
                 self.setHtml(self.html_network_down, QUrl())
+                debug("Start Url doesn't seem to be available; displaying error")
             else:
+                debug("404 on URL: %s" % self.url().toString())
                 self.setHtml(self.html404, QUrl())
         return True
 #### END WCGWEBVIEW DEFINITION ####
