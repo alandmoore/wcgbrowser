@@ -22,6 +22,45 @@ import re
 import subprocess
 import datetime
 
+#MESSAGE STRINGS
+DEFAULT_404 = """<h2>Sorry, can't go there</h2>
+<p>This page is not available on this computer.</p>
+<p>You can return to the <a href='%s'>start page</a>,
+or wait and you'll be returned to the
+<a href='javascript: history.back();'>previous page</a>.</p>
+<script>setTimeout('history.back()', 5000);</script>
+"""
+
+DEFAULT_NETWORK_DOWN =  """<h2>Network Error</h2>
+<p>The start page, %s, cannot be reached.
+This indicates a network connectivity problem.</p>
+<p>Staff, please check the following:</p>
+<ul>
+<li>Ensure the network connections at the computer and at the switch,
+hub, or wall panel are secure</li>
+<li>Restart the computer</li>
+<li>Ensure other systems at your location can access the same URL</li>
+</ul>
+<p>If you continue to get this error, contact technical support</p> """
+
+CERTIFICATE_ERROR = """<h1>Certificate Problem</h1>
+<p>The URL <strong>%s</strong> has a problem with its SSL certificate.
+For your security and protection, you will not be able to access it from this browser.</p>
+<p>If this URL is supposed to be reachable, please contact technical support for help.</p>
+<p>You can return to the <a href='%s'>start page</a>, or wait and
+you'll be returned to the <a href='javascript: history.back();'>previous page</a>.</p>
+<script>setTimeout('history.back()', 5000);</script>
+"""
+
+UNKNOWN_CONTENT_TYPE = """<h1>Failed: unrenderable content</h1>
+<p>The browser does not know how to handle the content type
+<strong>%s</strong> of the file <strong>%s</strong> supplied by
+<strong>%s</strong>.</p>"""
+
+DOWNLOADING_MESSAGE = """<H1>Downloading</h1>
+<p>Please wait while the file <strong>%s</strong> (%s)
+downloads from <strong>%s</strong>."""
+
 def debug(message):
     if not DEBUG and not DEBUG_LOG:
         pass
@@ -80,13 +119,7 @@ class MainWindow(QMainWindow):
         #The following variable sets the error code when a page cannot be reached,
         # either because of a generic 404, or because you've blocked it.
         # You can override it using the "page_unavailable_html" setting in the configuration file.
-        self.html404 = """<h2>Sorry, can't go there</h2>
-        <p>This page is not available on this computer.</p>
-        <p>You can return to the <a href='%s'>start page</a>,
-        or wait and you'll be returned to the
-        <a href='javascript: history.back();'>previous page</a>.</p>
-        <script>setTimeout('history.back()', 5000);</script>
-        """ % (self.start_url)
+        self.html404 = DEFAULT_404 % (self.start_url)
         if (self.configuration.get("page_unavailable_html")):
             try:
                 html404 = open(self.configuration.get("page_unavailable_html"), 'r').read()
@@ -98,17 +131,7 @@ class MainWindow(QMainWindow):
         #This string is shown when sites that should be reachable (e.g. the start page) aren't.
         #You might want to put in contact information for your tech support, etc.
         # You can override it use the "network_down_html" setting in the configuration file.
-        self.html_network_down = """<h2>Network Error</h2>
-        <p>The start page, %s, cannot be reached.
-        This indicates a network connectivity problem.</p>
-        <p>Staff, please check the following:</p>
-        <ul>
-        <li>Ensure the network connections at the computer and at the switch,
-        hub, or wall panel are secure</li>
-        <li>Restart the computer</li>
-        <li>Ensure other systems at your location can access the same URL</li>
-        </ul>
-        <p>If you continue to get this error, contact technical support</p> """ % (self.start_url)
+        self.html_network_down = DEFAULT_NETWORK_DOWN % (self.start_url)
         if (self.configuration.get("network_down_html")):
             try:
                 html_network_down = open(self.configuration.get("network_down_html"), 'r').read()
@@ -120,6 +143,10 @@ class MainWindow(QMainWindow):
         self.build_ui(self.options, self.configuration)
 
     def build_ui(self, options, configuration):
+        """
+        This is all the twisted logic of setting up the UI, which is re-run
+        whenever the browser is "reset" by the user.
+        """
         inactivity_timeout = options.timeout or int(configuration.get("timeout", 0))
         timeout_mode = configuration.get('timeout_mode', 'reset')
         self.icon_theme = options.icon_theme or configuration.get("icon_theme", None)
@@ -270,6 +297,12 @@ class MainWindow(QMainWindow):
         ###END OF CONSTRUCTOR###
 
     def reset_browser(self):
+        """
+        This function clears the history and resets the UI.
+        It's called whenever the inactivity filter times out,
+        Or when the user clicks the "finished" button when in
+        'reset' mode.
+        """
         # self.navigation_bar.clear() doesn't do its job,
         #so remove the toolbar first, then rebuild the UI.
         debug("RESET BROWSER")
@@ -277,8 +310,10 @@ class MainWindow(QMainWindow):
         self.build_ui(self.options, self.configuration)
 
     def zoom_in(self):
-        """This is the callback for the zoom in action.
-        Note that we cap zooming in at a factor of 3x."""
+        """
+        This is the callback for the zoom in action.
+        Note that we cap zooming in at a factor of 3x.
+        """
         if self.browser_window.zoomFactor() < 3.0:
             self.browser_window.setZoomFactor(self.browser_window.zoomFactor() + 0.1)
             self.nav_items["zoom_out"].setEnabled(True)
@@ -286,8 +321,10 @@ class MainWindow(QMainWindow):
             self.nav_items["zoom_in"].setEnabled(False)
 
     def zoom_out(self):
-        """This is the callback for the zoom out action.
-        Note that we cap zooming out at 0.1x."""
+        """
+        This is the callback for the zoom out action.
+        Note that we cap zooming out at 0.1x.
+        """
         if self.browser_window.zoomFactor() > 0.1:
             self.browser_window.setZoomFactor(self.browser_window.zoomFactor() - 0.1)
             self.nav_items["zoom_in"].setEnabled(True)
@@ -299,13 +336,15 @@ class MainWindow(QMainWindow):
 ### END Main Application Window Class def ###
 
 class InactivityFilter(QTimer):
-    """This class defines an inactivity filter,
+    """
+    This class defines an inactivity filter,
     which is basically a timer that resets every time "activity"
-    events are detected in the main application."""
+    events are detected in the main application.
+    """
     def __init__(self, timeout=0, parent=None):
         super(InactivityFilter, self).__init__(parent)
         # timeout needs to be converted from seconds to milliseconds
-        self.timeout = timeout * 1000  
+        self.timeout = timeout * 1000
         self.setInterval(self.timeout)
         self.start()
 
@@ -323,8 +362,10 @@ class InactivityFilter(QTimer):
 
 
 class WcgWebView(QWebView):
-    """This is the webview for the application.
-    It's a simple wrapper around QWebView that configures some basic settings."""
+    """
+    This is the webview for the application.
+    It's a simple wrapper around QWebView that configures some basic settings.
+    """
     def __init__(self, parent=None, **kwargs):
         super(WcgWebView, self).__init__(parent)
         self.kwargs = kwargs
@@ -364,8 +405,10 @@ class WcgWebView(QWebView):
         self.connect(self, SIGNAL("loadFinished(bool)"), self.onLoadFinished)
 
     def createWindow(self, type):
-        """This function has been overridden to allow for popup windows,
-        if that feature is enabled."""
+        """
+        This function has been overridden to allow for popup windows,
+        if that feature is enabled.
+        """
         if self.allow_popups:
             self.popup = WcgWebView(None, networkAccessManager=self.nam, **self.kwargs)
             # This assumes the window manager has an "X" icon
@@ -377,19 +420,16 @@ class WcgWebView(QWebView):
             debug("Popup not loaded on %s" % self.url().toString())
 
     def sslErrorHandler(self, reply, errorList):
+        """
+        Called whenever the browser encounters an SSL error.
+        Checks the ssl_mode and responds accordingly.
+        """
         if self.ssl_mode == 'ignore':
             reply.ignoreSslErrors()
             debug("SSL error ignored")
             debug(", ".join([str(error.errorString()) for error in errorList]))
         else:
-            self.setHtml("""<h1>Certificate Problem</h1>
-            <p>The URL <strong>%s</strong> has a problem with its SSL certificate.
-            For your security and protection, you will not be able to access it from this browser.</p>
-            <p>If this URL is supposed to be reachable, please contact technical support for help.</p>
-            <p>You can return to the <a href='%s'>start page</a>, or wait and
-            you'll be returned to the <a href='javascript: history.back();'>previous page</a>.</p>
-        <script>setTimeout('history.back()', 5000);</script>
-        """ % (reply.url().toString(), self.start_url))
+            self.setHtml(CERTIFICATE_ERROR % (reply.url().toString(), self.start_url))
 
     def auth_dialog(self, reply, authenticator):
         """
@@ -413,17 +453,12 @@ class WcgWebView(QWebView):
         content_url = self.reply.url()
         debug("Loading url %s of type %s" % (content_url.toString(), self.content_type))
         if not self.content_handlers.get(str(self.content_type)):
-            self.setHtml("""<h1>Failed: unrenderable content</h1>
-            <p>The browser does not know how to handle the content type
-            <strong>%s</strong> of the file <strong>%s</strong> supplied by
-            <strong>%s</strong>.</p>""" % (self.content_type,
+            self.setHtml(UNKNOWN_CONTENT_TYPE % (self.content_type,
                                            self.content_filename,
                                            content_url.toString()))
         else:
             if str(self.url().toString()) in ('', 'about:blank'):
-                self.setHtml("""<H1>Downloading</h1>
-                <p>Please wait while the file <strong>%s</strong> (%s)
-                downloads from <strong>%s</strong>.""" % (self.content_filename,
+                self.setHtml(DOWNLOADING_MESSAGE % (self.content_filename,
                                                           self.content_type,
                                                           content_url.toString()))
             else:
@@ -432,7 +467,9 @@ class WcgWebView(QWebView):
             self.connect(self.reply, SIGNAL("finished()"), self.display_downloaded_content)
 
     def display_downloaded_content(self):
-        """Called when an unsupported content type is finished downloading."""
+        """
+        Called when an unsupported content type is finished downloading.
+        """
         file_path = QDir.toNativeSeparators(QDir.tempPath() + "/XXXXXX_" + self.content_filename)
         myfile = QTemporaryFile(file_path)
         myfile.setAutoRemove(False)
@@ -447,6 +484,10 @@ class WcgWebView(QWebView):
                 self.close()
 
     def onLinkClick(self, url):
+        """
+        Called whenever the browser navigates to a URL;
+        handles the whitelisting logic.
+        """
         #If whitelisting is enabled, and this isn't the start_url host,
         #check the url to see if the host's domain matches.
         if self.whitelist \
