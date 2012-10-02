@@ -6,8 +6,10 @@ Released under the GNU GPL v3
 """
 
 # PyQT imports
-from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication, QSizePolicy, QKeySequence, QToolBar
-from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, QDir
+from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
+     QSizePolicy, QKeySequence, QToolBar
+from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, \
+     Qt, QTemporaryFile, QDir
 from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager
 
@@ -38,9 +40,12 @@ def debug(message):
                 print ("unable to write to log file %s" % DEBUG_LOG)
 
 class MainWindow(QMainWindow):
-    """This class is the main application class,
-    it defines the GUI window for the browser"""
-    def createAction(self, text, slot=None, shortcut=None, icon=None, tip=None, checkable=False, signal="triggered()"):
+    """
+    This class is the main application class,
+    it defines the GUI window for the browser
+    """
+    def createAction(self, text, slot=None, shortcut=None, icon=None, tip=None,
+                     checkable=False, signal="triggered()"):
         """Borrowed from 'Rapid GUI Development with PyQT by Mark Summerset'"""
         action = QAction(text, self)
         if icon is not None:
@@ -72,13 +77,14 @@ class MainWindow(QMainWindow):
         self.start_url = options.url or self.configuration.get("start_url", "about:blank")
         self.whitelist = self.configuration.get("whitelist", False)
 
-
-
-        #The following variable sets the error code when a page cannot be reached, either because of a generic 404, or because you've blocked it.
+        #The following variable sets the error code when a page cannot be reached,
+        # either because of a generic 404, or because you've blocked it.
         # You can override it using the "page_unavailable_html" setting in the configuration file.
         self.html404 = """<h2>Sorry, can't go there</h2>
         <p>This page is not available on this computer.</p>
-        <p>You can return to the <a href='%s'>start page</a>, or wait and I'll return you to the <a href='javascript: history.back();'>previous page</a>.</p>
+        <p>You can return to the <a href='%s'>start page</a>,
+        or wait and you'll be returned to the
+        <a href='javascript: history.back();'>previous page</a>.</p>
         <script>setTimeout('history.back()', 5000);</script>
         """ % (self.start_url)
         if (self.configuration.get("page_unavailable_html")):
@@ -89,12 +95,16 @@ class MainWindow(QMainWindow):
                 debug("Couldn't read file: %s" % self.configuration.get("page_unavailable_html"))
             self.html404 = html404 or self.html404
 
-        #This string is shown when sites that should be reachable (e.g. the start page) aren't.  You might want to put in contact information for your tech support, etc.
+        #This string is shown when sites that should be reachable (e.g. the start page) aren't.
+        #You might want to put in contact information for your tech support, etc.
         # You can override it use the "network_down_html" setting in the configuration file.
-        self.html_network_down = """<h2>Network Error</h2><p>The start page, %s, cannot be reached.  This indicates a network connectivity problem.</p>
+        self.html_network_down = """<h2>Network Error</h2>
+        <p>The start page, %s, cannot be reached.
+        This indicates a network connectivity problem.</p>
         <p>Staff, please check the following:</p>
         <ul>
-        <li>Ensure the network connections at the computer and at the switch, hub, or wall panel are secure</li>
+        <li>Ensure the network connections at the computer and at the switch,
+        hub, or wall panel are secure</li>
         <li>Restart the computer</li>
         <li>Ensure other systems at your location can access the same URL</li>
         </ul>
@@ -117,8 +127,11 @@ class MainWindow(QMainWindow):
         self.allow_popups = options.allow_popups or configuration.get("allow_popups", False)
         self.ssl_mode = (configuration.get("ssl_mode") in ['strict', 'ignore'] and configuration.get("ssl_mode")) or 'strict'
         self.is_fullscreen = options.is_fullscreen or configuration.get("fullscreen", False)
-        self.show_navigation = not options.noNav and configuration.get('navigation', True)
-        self.navigation_layout = configuration.get("navigation_layout", ['back', 'forward', 'refresh', 'stop', 'zoom_in', 'zoom_out', 'separator', 'bookmarks', 'separator', 'spacer', 'quit'])
+        self.show_navigation = not options.no_navigation and configuration.get('navigation', True)
+        self.navigation_layout = configuration.get(
+            "navigation_layout",
+            ['back', 'forward', 'refresh', 'stop', 'zoom_in', 'zoom_out',
+             'separator', 'bookmarks', 'separator', 'spacer', 'quit'])
         self.content_handlers = self.configuration.get("content_handlers", {})
         self.allow_external_content = options.allow_external_content or self.configuration.get("allow_external_content", False)
         self.allow_plugins = options.allow_plugins or self.configuration.get("allow_plugins", False)
@@ -128,7 +141,8 @@ class MainWindow(QMainWindow):
         qb_mode_callbacks = {'close': self.close, 'reset': self.reset_browser}
         #If the whitelist is activated, add the bookmarks and start_url
         if self.whitelist:
-            # we can just specify whitelist = True, which should whitelist just the start_url and bookmark urls.
+            # we can just specify whitelist = True,
+            #which should whitelist just the start_url and bookmark urls.
             if type(self.whitelist) is not list:
                 self.whitelist = []
             self.whitelist.append(str(QUrl(self.start_url).host()))
@@ -152,14 +166,6 @@ class MainWindow(QMainWindow):
             allow_plugins = self.allow_plugins,
             whitelist = self.whitelist
             )
-
-        #Supposedly this code will make certificates work, but I could never
-        #get it to work right.  For now we're just ignoring them.
-
-        ## config = QSslConfiguration.defaultConfiguration()
-        ## certs = config.caCertificates()
-        ## certs.append(QSslCertificate(QFile("somecert.crt")))
-        ## config.setCaCertificates(certs)
 
         if self.icon_theme is not None and QT_VERSION_STR > '4.6':
             QIcon.setThemeName(self.icon_theme)
@@ -198,11 +204,21 @@ class MainWindow(QMainWindow):
                 qb_mode_callbacks.get(self.quit_button_mode, self.reset_browser),
                 QKeySequence("Alt+F"),
                 None,
-                "Click here when you are done. \nIt will clear your browsing history and return you to the start page."
-                )
+                """Click here when you are done.
+                It will clear your browsing history and return you to the start page.""")
             #Zoom buttons
-            self.nav_items["zoom_in"] = self.createAction("Zoom In", self.zoom_in, QKeySequence("Alt++"), "zoom-in", "Increase the size of the text and images on the page")
-            self.nav_items["zoom_out"] = self.createAction("Zoom Out", self.zoom_out, QKeySequence("Alt+-"), "zoom-out", "Decrease the size of text and images on the page")
+            self.nav_items["zoom_in"] = self.createAction(
+                "Zoom In",
+                self.zoom_in,
+                QKeySequence("Alt++"),
+                "zoom-in",
+                "Increase the size of the text and images on the page")
+            self.nav_items["zoom_out"] = self.createAction(
+                "Zoom Out",
+                self.zoom_out,
+                QKeySequence("Alt+-"),
+                "zoom-out",
+                "Decrease the size of text and images on the page")
 
             #Add all the actions to the navigation bar.
             for item in self.navigation_layout:
@@ -219,13 +235,15 @@ class MainWindow(QMainWindow):
                     if configuration.get("bookmarks"):
                         for bookmark in configuration.get("bookmarks").items():
                             debug("Bookmark:\n" + bookmark.__str__())
-                            #Create a button for the bookmark as a QAction, which we'll add to the toolbar
-                            button = self.createAction(bookmark[0],
-                                                       lambda url=bookmark[1].get("url"): self.browser_window.load(QUrl(url)),
-                                                       QKeySequence.mnemonic(bookmark[0]),
-                                                       None,
-                                                       bookmark[1].get("description")
-                                                       )
+                            #Create a button for the bookmark as a QAction,
+                            #which we'll add to the toolbar
+                            button = self.createAction(
+                                bookmark[0],
+                                lambda url=bookmark[1].get("url"): self.browser_window.load(QUrl(url)),
+                                QKeySequence.mnemonic(bookmark[0]),
+                                None,
+                                bookmark[1].get("description")
+                                )
                             self.navigation_bar.addAction(button)
                 else:
                     self.navigation_bar.addAction(self.nav_items.get(item, None))
@@ -236,7 +254,9 @@ class MainWindow(QMainWindow):
             #End "if show_navigation is True" block
 
         # set hidden quit action
-        # For reasons I haven't adequately ascertained, this shortcut fails now and then claiming "Ambiguous shortcut overload".  No idea why, as it isn't consistent.
+        # For reasons I haven't adequately ascertained,
+        #this shortcut fails now and then claiming "Ambiguous shortcut overload".
+        # No idea why, as it isn't consistent.
         self.really_quit = self.createAction("", self.close, QKeySequence("Ctrl+Alt+Q"), None, "")
         self.addAction(self.really_quit)
 
@@ -245,17 +265,20 @@ class MainWindow(QMainWindow):
             self.event_filter = InactivityFilter(inactivity_timeout)
             self.installEventFilter(self.event_filter)
             self.browser_window.page().installEventFilter(self.event_filter)
-            self.connect(self.event_filter, SIGNAL("timeout()"), qb_mode_callbacks.get(timeout_mode, self.reset_browser))
+            self.connect(self.event_filter, SIGNAL("timeout()"),
+                         qb_mode_callbacks.get(timeout_mode, self.reset_browser))
         ###END OF CONSTRUCTOR###
 
     def reset_browser(self):
-        # self.navigation_bar.clear() doesn't do its job, so remove the toolbar first, then rebuild the UI.
+        # self.navigation_bar.clear() doesn't do its job,
+        #so remove the toolbar first, then rebuild the UI.
         debug("RESET BROWSER")
         self.removeToolBar(self.navigation_bar)
         self.build_ui(self.options, self.configuration)
 
     def zoom_in(self):
-        """This is the callback for the zoom in action.  Note that we cap zooming in at a factor of 3x."""
+        """This is the callback for the zoom in action.
+        Note that we cap zooming in at a factor of 3x."""
         if self.browser_window.zoomFactor() < 3.0:
             self.browser_window.setZoomFactor(self.browser_window.zoomFactor() + 0.1)
             self.nav_items["zoom_out"].setEnabled(True)
@@ -263,7 +286,8 @@ class MainWindow(QMainWindow):
             self.nav_items["zoom_in"].setEnabled(False)
 
     def zoom_out(self):
-        """This is the callback for the zoom out action.  Note that we cap zooming out at 0.1x."""
+        """This is the callback for the zoom out action.
+        Note that we cap zooming out at 0.1x."""
         if self.browser_window.zoomFactor() > 0.1:
             self.browser_window.setZoomFactor(self.browser_window.zoomFactor() - 0.1)
             self.nav_items["zoom_in"].setEnabled(True)
@@ -275,10 +299,13 @@ class MainWindow(QMainWindow):
 ### END Main Application Window Class def ###
 
 class InactivityFilter(QTimer):
-    """This class defines an inactivity filter, which is basically a timer that resets every time "activity" events are detected in the main application."""
+    """This class defines an inactivity filter,
+    which is basically a timer that resets every time "activity"
+    events are detected in the main application."""
     def __init__(self, timeout=0, parent=None):
         super(InactivityFilter, self).__init__(parent)
-        self.timeout = timeout * 1000  # timeout needs to be converted from seconds to milliseconds
+        # timeout needs to be converted from seconds to milliseconds
+        self.timeout = timeout * 1000  
         self.setInterval(self.timeout)
         self.start()
 
@@ -287,7 +314,8 @@ class InactivityFilter(QTimer):
             self.emit(SIGNAL("activity"))
             self.start(self.timeout)
             #commented this debug code, because it spits out way to much information.
-            #uncomment if you're having trouble with the timeout detecting user inactivity correctly to determine what it's detecting and ignoring
+            #uncomment if you're having trouble with the timeout detecting user
+            #inactivity correctly to determine what it's detecting and ignoring
             #debug ("Activity: %s type %d" % (event, event.type()))
         #else:
             #debug("Ignored event: %s type %d" % (event, event.type()))
@@ -295,7 +323,8 @@ class InactivityFilter(QTimer):
 
 
 class WcgWebView(QWebView):
-    """This is the webview for the application.  It's a simple wrapper around QWebView that configures some basic settings."""
+    """This is the webview for the application.
+    It's a simple wrapper around QWebView that configures some basic settings."""
     def __init__(self, parent=None, **kwargs):
         super(WcgWebView, self).__init__(parent)
         self.kwargs = kwargs
@@ -306,7 +335,8 @@ class WcgWebView(QWebView):
         self.default_password = kwargs.get('default_password', '')
         self.allow_plugins = kwargs.get("allow_plugins", False)
         self.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, self.allow_popups)
-        #JavascriptCanCloseWindows is in the API documentation, but my system claims QWebSettings has no such member.
+        #JavascriptCanCloseWindows is in the API documentation,
+        #but my system claims QWebSettings has no such member.
         #self.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, self.allow_popups)
         self.settings().setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
         self.settings().setAttribute(QWebSettings.PluginsEnabled, self.allow_plugins)
@@ -322,41 +352,60 @@ class WcgWebView(QWebView):
         self.whitelist = kwargs.get("whitelist", False)
 
         #connections for wcgwebview
-        self.connect(self.page().networkAccessManager(), SIGNAL("authenticationRequired(QNetworkReply * , QAuthenticator *)"), self.auth_dialog)
-        self.connect(self.page(), SIGNAL("unsupportedContent(QNetworkReply *)"), self.handle_unsupported_content)
-        self.connect(self.page().networkAccessManager(), SIGNAL("sslErrors (QNetworkReply *, const QList<QSslError> &)"), self.sslErrorHandler)
+        self.connect(self.page().networkAccessManager(),
+                     SIGNAL("authenticationRequired(QNetworkReply * , QAuthenticator *)"),
+                     self.auth_dialog)
+        self.connect(self.page(), SIGNAL("unsupportedContent(QNetworkReply *)"),
+                     self.handle_unsupported_content)
+        self.connect(self.page().networkAccessManager(),
+                     SIGNAL("sslErrors (QNetworkReply *, const QList<QSslError> &)"),
+                     self.sslErrorHandler)
         self.connect(self, SIGNAL("urlChanged(QUrl)"), self.onLinkClick)
         self.connect(self, SIGNAL("loadFinished(bool)"), self.onLoadFinished)
 
     def createWindow(self, type):
-        """This function has been overridden to allow for popup windows, if that feature is enabled."""
+        """This function has been overridden to allow for popup windows,
+        if that feature is enabled."""
         if self.allow_popups:
             self.popup = WcgWebView(None, networkAccessManager=self.nam, **self.kwargs)
-            #This assumes the window manager has an "X" icon for closing the window somewhere to the right.
+            # This assumes the window manager has an "X" icon
+            # for closing the window somewhere to the right.
             self.popup.setWindowTitle("Click the 'X' to close this window! ---> ")
             self.popup.show()
             return self.popup
         else:
             debug("Popup not loaded on %s" % self.url().toString())
 
-    #sslErrorHandler was overridden to ignore SSL errors, because I couldn't make certificates work.
-    #Obviously, if you're in an environment where this could be a security risk, this is bad.
     def sslErrorHandler(self, reply, errorList):
         if self.ssl_mode == 'ignore':
             reply.ignoreSslErrors()
             debug("SSL error ignored")
             debug(", ".join([str(error.errorString()) for error in errorList]))
         else:
-            self.setHtml("""<h1>Certificate Problem</h1><p>The URL <strong>%s</strong> has a problem with its SSL certificate.  For your security and protection, you will not be able to access it from this browser.</p><p>If this URL is supposed to be reachable, please contact technical support for help.</p> <p>You may <a href="%s">click here</a> to return to the home screen.</p>""" % (reply.url().toString(), self.start_url))
+            self.setHtml("""<h1>Certificate Problem</h1>
+            <p>The URL <strong>%s</strong> has a problem with its SSL certificate.
+            For your security and protection, you will not be able to access it from this browser.</p>
+            <p>If this URL is supposed to be reachable, please contact technical support for help.</p>
+            <p>You can return to the <a href='%s'>start page</a>, or wait and
+            you'll be returned to the <a href='javascript: history.back();'>previous page</a>.</p>
+        <script>setTimeout('history.back()', 5000);</script>
+        """ % (reply.url().toString(), self.start_url))
 
     def auth_dialog(self, reply, authenticator):
-        """This is called when a page requests authentication.  It might be nice to actually have a dialog here, but for now we just use the default credentials from the config file."""
+        """
+        This is called when a page requests authentication.
+        It might be nice to actually have a dialog here,
+        but for now we just use the default credentials from the config file.
+        """
         debug("Auth required on %s" % reply.url().toString())
         authenticator.setUser(self.default_user)
         authenticator.setPassword(self.default_password)
 
     def handle_unsupported_content(self, reply):
-        """Called basically when the reply from the request is not HTML or something else renderable by qwebview"""
+        """
+        Called basically when the reply from the request is not HTML
+        or something else renderable by qwebview
+        """
         self.reply = reply
         self.content_type = self.reply.header(QNetworkRequest.ContentTypeHeader).toString()
         self.content_filename = re.match('.*;\s*filename=(.*);', self.reply.rawHeader('Content-Disposition'))
@@ -364,10 +413,19 @@ class WcgWebView(QWebView):
         content_url = self.reply.url()
         debug("Loading url %s of type %s" % (content_url.toString(), self.content_type))
         if not self.content_handlers.get(str(self.content_type)):
-            self.setHtml("<h1>Failed: unrenderable content</h1><p>The browser does not know how to handle the content type <strong>%s</strong> of the file <strong>%s</strong> supplied by <strong>%s</strong>.</p>" % (self.content_type, self.content_filename, content_url.toString()))
+            self.setHtml("""<h1>Failed: unrenderable content</h1>
+            <p>The browser does not know how to handle the content type
+            <strong>%s</strong> of the file <strong>%s</strong> supplied by
+            <strong>%s</strong>.</p>""" % (self.content_type,
+                                           self.content_filename,
+                                           content_url.toString()))
         else:
             if str(self.url().toString()) in ('', 'about:blank'):
-                self.setHtml("<H1>Downloading</h1><p>Please wait while the file <strong>%s</strong> (%s) downloads from <strong>%s</strong>." % (self.content_filename, self.content_type, content_url.toString()))
+                self.setHtml("""<H1>Downloading</h1>
+                <p>Please wait while the file <strong>%s</strong> (%s)
+                downloads from <strong>%s</strong>.""" % (self.content_filename,
+                                                          self.content_type,
+                                                          content_url.toString()))
             else:
                 # print(self.url())
                 self.load(self.url())
@@ -383,13 +441,17 @@ class WcgWebView(QWebView):
             myfile.close()
             subprocess.Popen([self.content_handlers.get(str(self.content_type)), myfile.fileName()])
 
-            #Sometimes downloading files opens an empty window.  So if the current window has no URL, close it.
+            #Sometimes downloading files opens an empty window.
+            #So if the current window has no URL, close it.
             if(str(self.url().toString()) in ('', 'about:blank')):
                 self.close()
 
     def onLinkClick(self, url):
-        #If whitelisting is enabled, and this isn't the start_url host, check the url to see if the host's domain matches.
-        if self.whitelist and not (url.host() == QUrl(self.start_url).host()) and not str(url.toString()) == 'about:blank':
+        #If whitelisting is enabled, and this isn't the start_url host,
+        #check the url to see if the host's domain matches.
+        if self.whitelist \
+          and not (url.host() == QUrl(self.start_url).host()) \
+          and not str(url.toString()) == 'about:blank':
             site_ok = False
             for whitelisted_host in self.whitelist:
                 pattern = str("(^|.*\.)" + whitelisted_host + "$")
@@ -403,9 +465,16 @@ class WcgWebView(QWebView):
             debug("Load URL %s" % url.toString())
 
     def onLoadFinished(self, ok):
-        """This function is called when a page load finishes.  We're checking to see if the load was successful; if it's not, we display either the 404 error, or a "network is down" message if it's the start page that failed or some random page."""
+        """
+        This function is called when a page load finishes.
+        We're checking to see if the load was successful;
+        if it's not, we display either the 404 error (if
+        it's just some random page), or a "network is down" message
+        (if it's the start page that failed).
+        """
         if not ok:
-            if self.url().host() == QUrl(self.start_url).host() and str(self.url().path()).rstrip("/") == str(QUrl(self.start_url).path()).rstrip("/"):
+            if self.url().host() == QUrl(self.start_url).host() \
+              and str(self.url().path()).rstrip("/") == str(QUrl(self.start_url).path()).rstrip("/"):
                 self.setHtml(self.html_network_down, QUrl())
                 debug("Start Url doesn't seem to be available; displaying error")
             else:
@@ -434,21 +503,45 @@ if __name__ == "__main__":
 
     #Parse the command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("-l", "--url", action="store", dest="url", help="Start browser at URL")
-    parser.add_argument("-f", "--fullscreen", action="store_true", default=False, dest="is_fullscreen", help="Start browser FullScreen")
-    parser.add_argument("-n", "--no-navigation", action="store_true", default=False, dest="noNav", help="Start browser without Navigation controls")
-    parser.add_argument("-c", "--config-file", action="store", default=default_config_file, dest="config_file", help="Specifiy an alternate config file")
-    parser.add_argument("-d", "--debug", action="store_true", default=False, dest="DEBUG", help="Enable debugging output to stdout")
-    parser.add_argument("--debug_log", action="store", default=None, dest="debug_log", help="Enable debug output to the specified filename")
-    parser.add_argument("-t", "--timeout", action="store", type=int, default=0, dest="timeout", help="Define the timeout in seconds after which to reset the browser due to user inactivity")
-    parser.add_argument("-i", "--icon-theme", action="store", default=None, dest="icon_theme", help="override default icon theme with other Qt/KDE icon theme")
-    parser.add_argument("-z", "--zoom", action="store", type=float, default=0, dest="zoomfactor", help="Set the zoom factor for web pages")
-    parser.add_argument("-p", "--popups", action="store_true", default=False, dest="allow_popups", help="Allow the browser to open new windows")
-    parser.add_argument("-u", "--user", action="store", dest="default_user", help="Set the default username used for URLs that require authentication")
-    parser.add_argument("-w", "--password", action="store", dest="default_password", help="Set the default password used for URLs that require authentication")
-    parser.add_argument("-e", "--allow_external", action="store_true", default=False, dest='allow_external_content', help="Allow the browser to open content in external programs.")
-    parser.add_argument("-g", "--allow_plugins", action="store_true", default=False, dest='allow_plugins', help="Allow the browser to use plugins like Flash or Java (if installed)")
-    parser.add_argument("--size", action="store", dest="window_size", default=None, help="Specify the default window size in pixels (widthxheight), or 'max' to maximize")
+    parser.add_argument("-l", "--url", action="store", dest="url",
+                        help="Start browser at URL")
+    parser.add_argument("-f", "--fullscreen", action="store_true", default=False,
+                        dest="is_fullscreen", help="Start browser FullScreen")
+    parser.add_argument("-n", "--no-navigation", action="store_true",
+                        default=False, dest="no_navigation",
+                        help="Start browser without Navigation controls")
+    parser.add_argument("-c", "--config-file", action="store",
+                        default=default_config_file, dest="config_file",
+                        help="Specifiy an alternate config file")
+    parser.add_argument("-d", "--debug", action="store_true",
+                        default=False, dest="DEBUG",
+                        help="Enable debugging output to stdout")
+    parser.add_argument("--debug_log", action="store", default=None,
+                        dest="debug_log",
+                        help="Enable debug output to the specified filename")
+    parser.add_argument("-t", "--timeout", action="store", type=int, default=0,
+                        dest="timeout",
+                        help="Define the timeout in seconds after which to reset the browser due to user inactivity")
+    parser.add_argument("-i", "--icon-theme", action="store", default=None,
+                        dest="icon_theme",
+                        help="override default icon theme with other Qt/KDE icon theme")
+    parser.add_argument("-z", "--zoom", action="store", type=float, default=0,
+                        dest="zoomfactor", help="Set the zoom factor for web pages")
+    parser.add_argument("-p", "--popups", action="store_true", default=False,
+                        dest="allow_popups", help="Allow the browser to open new windows")
+    parser.add_argument("-u", "--user", action="store", dest="default_user",
+                        help="Set the default username used for URLs that require authentication")
+    parser.add_argument("-w", "--password", action="store", dest="default_password",
+                        help="Set the default password used for URLs that require authentication")
+    parser.add_argument("-e", "--allow_external", action="store_true",
+                        default=False, dest='allow_external_content',
+                        help="Allow the browser to open content in external programs.")
+    parser.add_argument("-g", "--allow_plugins", action="store_true",
+                        default=False, dest='allow_plugins',
+                        help="Allow the browser to use plugins like Flash or Java (if installed)")
+    parser.add_argument("--size", action="store", dest="window_size",
+                        default=None,
+                        help="Specify the default window size in pixels (widthxheight), or 'max' to maximize")
     args = parser.parse_args()
     DEBUG = args.DEBUG
     DEBUG_LOG = args.debug_log
