@@ -370,6 +370,7 @@ class WcgWebView(QWebView):
         super(WcgWebView, self).__init__(parent)
         self.kwargs = kwargs
         self.nam = kwargs.get('networkAccessManager') or QNetworkAccessManager()
+        self.setPage(WCGWebPage())
         self.page().setNetworkAccessManager(self.nam)
         self.allow_popups = kwargs.get('allow_popups')
         self.default_user = kwargs.get('default_user', '')
@@ -380,6 +381,7 @@ class WcgWebView(QWebView):
         #but my system claims QWebSettings has no such member.
         #self.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, self.allow_popups)
         self.settings().setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
+        self.settings().setAttribute(QWebSettings.LocalStorageEnabled, True)
         self.settings().setAttribute(QWebSettings.PluginsEnabled, self.allow_plugins)
         self.zoomfactor = kwargs.get("zoomfactor", 1)
         self.allow_external_content = kwargs.get('allow_external_content')
@@ -523,6 +525,23 @@ class WcgWebView(QWebView):
                 self.setHtml(self.html404, QUrl())
         return True
 #### END WCGWEBVIEW DEFINITION ####
+
+#### WCGWEBPAGE #####
+
+class WCGWebPage(QWebPage):
+    """
+    Subclassed QWebPage so that some functions can be overridden.
+    """
+    def __init__(self, parent=None):
+        super(WCGWebPage, self).__init__(parent)
+
+    def javaScriptConsoleMessage(self, message, line, sourceid):
+        """
+        Overridden so that we can send javascript errors to debug.
+        """
+        debug("Javascript Error in \"%s\" line %d: %s" % (sourceid, line, message))
+
+#### END WCGWEBPAGE DEFINITION ####
 
 ######### Main application code begins here ###################
 
