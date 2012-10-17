@@ -114,7 +114,10 @@ class MainWindow(QMainWindow):
         self.default_user = options.default_user or  self.configuration.get("default_user")
         self.default_password = options.default_password or self.configuration.get("default_password")
         self.start_url = options.url or self.configuration.get("start_url", "about:blank")
+        self.screensaver_url = self.configuration.get("screensaver_url", "about:blank")
+        self.screensaver_active = False
         self.whitelist = self.configuration.get("whitelist", False)
+        self.popup = None
 
         #The following variable sets the error code when a page cannot be reached,
         # either because of a generic 404, or because you've blocked it.
@@ -147,6 +150,7 @@ class MainWindow(QMainWindow):
         This is all the twisted logic of setting up the UI, which is re-run
         whenever the browser is "reset" by the user.
         """
+        debug("build_ui")
         inactivity_timeout = options.timeout or int(configuration.get("timeout", 0))
         timeout_mode = configuration.get('timeout_mode', 'reset')
         self.icon_theme = options.icon_theme or configuration.get("icon_theme", None)
@@ -166,6 +170,8 @@ class MainWindow(QMainWindow):
         self.quit_button_text = self.configuration.get("quit_button_text", "I'm &Finished")
         self.window_size = options.window_size or self.configuration.get("window_size", None)
         qb_mode_callbacks = {'close': self.close, 'reset': self.reset_browser}
+        to_mode_callbacks = {'close': self.close, 'reset': self.reset_browser, 'screensaver': self.screensaver}
+
         #If the whitelist is activated, add the bookmarks and start_url
         if self.whitelist:
             # we can just specify whitelist = True,
@@ -293,8 +299,18 @@ class MainWindow(QMainWindow):
             self.installEventFilter(self.event_filter)
             self.browser_window.page().installEventFilter(self.event_filter)
             self.connect(self.event_filter, SIGNAL("timeout()"),
-                         qb_mode_callbacks.get(timeout_mode, self.reset_browser))
+                         to_mode_callbacks.get(timeout_mode, self.reset_browser))
         ###END OF CONSTRUCTOR###
+
+    def screensaver(self):
+        debug("screensaver started")
+        self.screensaver_active = True
+        if self.popup:
+            self.popup.close()
+        if self.show_navigation is True:
+            self.navigation_bar.hide()
+        self.browser_window.load(QUrl(self.screensaver_url))
+        self.connect(self.event_filter, SIGNAL("activity"), self.reset_browser)
 
     def reset_browser(self):
         """
@@ -306,6 +322,12 @@ class MainWindow(QMainWindow):
         # self.navigation_bar.clear() doesn't do its job,
         #so remove the toolbar first, then rebuild the UI.
         debug("RESET BROWSER")
+        self.event_filter.blockSignals(True)
+        if self.screensaver_active is True:
+            self.screensaver_active = False
+            self.disconnect(self.event_filter, SIGNAL("activity"), self.reset_browser)
+            self.navigation_bar.show()
+        self.event_filter.blockSignals(False)
         self.removeToolBar(self.navigation_bar)
         self.build_ui(self.options, self.configuration)
 

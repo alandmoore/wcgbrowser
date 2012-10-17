@@ -23,6 +23,7 @@ Features
 - Configurable navigation bar with bookmarks
 - Configurable handling of external MIME-types (PDF, etc)
 - (Optional) Whitelisting of hosts & domains
+- 'Screensaver' mode to display a specified URL when idle
 
 Requirements
 ============
@@ -77,7 +78,8 @@ start_url              about:blank        The starting URL or "home page"
 default_user           (empty)            default username to send when pages request authentication
 default_password       (empty)            default password to send when pages request authentication
 timeout                0                  Number of seconds of inactivity before the browser closes or resets itself. A value of 0 disables the feature.
-timeout_mode           reset              The action performed on inactivity timeout.  Values can be "reset" (to return to the start URL and clear history) or "close" (to close the program)
+timeout_mode           reset              The action performed on inactivity timeout.  Values can be "reset" (to return to the start URL and clear history), "close" (to close the program), or 'screensaver' (to display the screensaver_url while idle)
+screensaver_url        about:blank        The URL to visit when idle.  Only matters when timeout_mode is 'screensaver' and 'timeout' is nonzero.
 zoom_factor            1.0                The amount of zoom applied to pages.  .5 is half size, 2.0 is double size, etc.
 allow_popups           False              Whether or not to allow navigation that requires opening a new browser window, such as javascript "window.open()" calls or links with a target of "_blank".  If False, the navigation will be ignored.  If true, a new window will be created as expected.
 ssl_mode               strict             Defines how the browser handles ssl certificate errors.  "strict" will just give an error and prevent access to the problematic URL.  "ignore" will silently ignore the errors and allow access.
@@ -176,6 +178,24 @@ What the whitelist doesn't do
 - The whitelist does not block **content** on a whitelisted page from being displayed, regardless of where the content is hosted.  As long as the page's URL is acceptable, all the content is displayed.  So, for example, if you have your images and scripts (or ads!) on a separate content delivery network, you don't need to whitelist that server.  You only need to whitelist hosts/domains of URLs to which the user is explicitly navigating (via hyperlink, bookmark, javascript forward, etc) -- in other words, the URL that would show up in a normal browser's location bar.
 - The whitelist cannot take an actual path or filename, nor does it check the port, protocol, username, or any other component of the URL other than the host or domain.  Sorry.
 - If you whitelist a host, its IP will *not* be automatically whitelisted (and vice-versa); nor will a fully-qualified hostname in the whitelist automatically whitelist the hostname by itself (or vice-versa).  A url is *only* allowed when its literal hostname matches a whitelist entry.
+
+Screensaver Mode
+----------------
+
+The screensaver mode is a special timeout mode that lets you display a given URL only while the browser is idle.  Consider a configuration like this::
+
+    start_url: 'http://example.com/kiosk'
+    timeout: 1800
+    timeout_mode: 'screensaver'
+    screensaver_url: 'http://example.com/slides'
+
+This configuration would do the following:
+
+- The browser will start on http://example.com/kiosk
+- After 30 minutes of no user activity (mouse/keyboard/touchscreen/etc), the navigation bar will hide and http://example.com/slides will be displayed.
+- As soon as a user steps up and generates activity (moves a mouse, touches the screen, etc), the navigation bar (if configured) will reappear, and the browser will load http://example.com/kiosk.
+
+The screensaver_url could be, for example, an image rotator, a page with ads, a welcome message, etc.  It doesn't really matter, but keep in mind the user can't actually interact with the screensaver page, because as soon as they touch a mouse or keyboard, the start_url will load.
 
 Bugs and Limitations
 ====================

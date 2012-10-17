@@ -35,12 +35,19 @@ start_url: "http://library.williamson-tn.org"
 timeout: 1800
 
 # "timeout_mode" sets the behavior for the timeout feature
-# Valid options are 'close' or 'reset'
+# Valid options are 'close', 'reset', or 'screensaver'
 # 'close' will exit the program
 # 'reset' will clear the history and go back to the start URL
+# 'screensaver' will hide the navigation bar (if it exists), and take the browser
+# to the screensaver_url.  Any activity will take you back to the start_url from there.
 # default is 'reset'
 
-#timeout_mode: 'close'
+timeout_mode: 'reset'
+
+# "screensaver_url" defines the URL the browser should go to in screensaver mode
+# default is "about:blank"
+
+#screensaver_url: 'http://lib.williamson-tn.org'
 
 
 # "zoom factor" determines the ratio for text/image scaling (like hitting ctrl-+ or ctrl-- on most browsers).
