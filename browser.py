@@ -9,7 +9,7 @@ Released under the GNU GPL v3
 from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
      QSizePolicy, QKeySequence, QToolBar
 from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, \
-     Qt, QTemporaryFile, QDir
+     Qt, QTemporaryFile, QDir, QCoreApplication
 from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager
 
@@ -296,7 +296,7 @@ class MainWindow(QMainWindow):
         #Call a reset function after timeout
         if inactivity_timeout != 0:
             self.event_filter = InactivityFilter(inactivity_timeout)
-            self.installEventFilter(self.event_filter)
+            QCoreApplication.instance().installEventFilter(self.event_filter)
             self.browser_window.page().installEventFilter(self.event_filter)
             self.connect(self.event_filter, SIGNAL("timeout()"),
                          to_mode_callbacks.get(timeout_mode, self.reset_browser))
@@ -371,14 +371,14 @@ class InactivityFilter(QTimer):
         self.start()
 
     def eventFilter(self, object, event):
-        if event.type() in (QEvent.HoverMove, QEvent.KeyPress, QEvent.KeyRelease, ):
+        if event.type() in (QEvent.MouseMove, QEvent.MouseButtonPress, QEvent.HoverMove, QEvent.KeyPress, QEvent.KeyRelease, ):
             self.emit(SIGNAL("activity"))
             self.start(self.timeout)
             #commented this debug code, because it spits out way to much information.
             #uncomment if you're having trouble with the timeout detecting user
             #inactivity correctly to determine what it's detecting and ignoring
             #debug ("Activity: %s type %d" % (event, event.type()))
-        #else:
+            #else:
             #debug("Ignored event: %s type %d" % (event, event.type()))
         return QObject.eventFilter(self, object, event)
 
