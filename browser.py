@@ -168,6 +168,8 @@ class MainWindow(QMainWindow):
         self.allow_plugins = options.allow_plugins or self.configuration.get("allow_plugins", False)
         self.quit_button_mode = self.configuration.get("quit_button_mode", 'reset')
         self.quit_button_text = self.configuration.get("quit_button_text", "I'm &Finished")
+        self.quit_button_tooltip = (self.quit_button_mode == 'close' and "Click here to quit the browser.") or \
+        """Click here when you are done.\nIt will clear your browsing history and return you to the start page."""
         self.window_size = options.window_size or self.configuration.get("window_size", None)
         qb_mode_callbacks = {'close': self.close, 'reset': self.reset_browser}
         to_mode_callbacks = {'close': self.close, 'reset': self.reset_browser, 'screensaver': self.screensaver}
@@ -237,8 +239,7 @@ class MainWindow(QMainWindow):
                 qb_mode_callbacks.get(self.quit_button_mode, self.reset_browser),
                 QKeySequence("Alt+F"),
                 None,
-                """Click here when you are done.
-                It will clear your browsing history and return you to the start page.""")
+                self.quit_button_tooltip)
             #Zoom buttons
             self.nav_items["zoom_in"] = self.createAction(
                 "Zoom In",
