@@ -300,6 +300,9 @@ class MainWindow(QMainWindow):
             self.browser_window.page().installEventFilter(self.event_filter)
             self.connect(self.event_filter, SIGNAL("timeout()"),
                          to_mode_callbacks.get(timeout_mode, self.reset_browser))
+        else:
+            self.event_filter = None
+
         ###END OF CONSTRUCTOR###
 
     def screensaver(self):
@@ -322,12 +325,14 @@ class MainWindow(QMainWindow):
         # self.navigation_bar.clear() doesn't do its job,
         #so remove the toolbar first, then rebuild the UI.
         debug("RESET BROWSER")
-        self.event_filter.blockSignals(True)
+        if self.event_filter:
+            self.event_filter.blockSignals(True)
         if self.screensaver_active is True:
             self.screensaver_active = False
             self.disconnect(self.event_filter, SIGNAL("activity"), self.reset_browser)
             self.navigation_bar.show()
-        self.event_filter.blockSignals(False)
+        if self.event_filter:
+            self.event_filter.blockSignals(False)
         self.removeToolBar(self.navigation_bar)
         self.build_ui(self.options, self.configuration)
 
@@ -399,9 +404,9 @@ class WcgWebView(QWebView):
         self.default_password = kwargs.get('default_password', '')
         self.allow_plugins = kwargs.get("allow_plugins", False)
         self.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, self.allow_popups)
-        #JavascriptCanCloseWindows is in the API documentation,
-        #but my system claims QWebSettings has no such member.
-        #self.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, self.allow_popups)
+        #JavascriptCanCloseWindows is in the API documentation, but apparently only exists after 4.8
+        if QT_VERSION_STR >= '4.8':
+            self.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, self.allow_popups)
         self.settings().setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
         self.settings().setAttribute(QWebSettings.LocalStorageEnabled, True)
         self.settings().setAttribute(QWebSettings.PluginsEnabled, self.allow_plugins)
@@ -462,8 +467,10 @@ class WcgWebView(QWebView):
         but for now we just use the default credentials from the config file.
         """
         debug("Auth required on %s" % reply.url().toString())
-        authenticator.setUser(self.default_user)
-        authenticator.setPassword(self.default_password)
+        if (self.default_user):
+            authenticator.setUser(self.default_user)
+        if (self.default_password):
+            authenticator.setPassword(self.default_password)
 
     def handle_unsupported_content(self, reply):
         """
@@ -620,6 +627,8 @@ if __name__ == "__main__":
     parser.add_argument("--size", action="store", dest="window_size",
                         default=None,
                         help="Specify the default window size in pixels (widthxheight), or 'max' to maximize")
+    # rather than parse sys.argv here, we're parsing app.arguments so that qt-specific args are removed.
+    # we also need to remove argument 0.
     args = parser.parse_args([str(x) for x in list(app.arguments())][1:])
     DEBUG = args.DEBUG
     DEBUG_LOG = args.debug_log
