@@ -65,6 +65,7 @@ The --help switch should give you an up-to-date summary of the available command
 --size
 ====================    =====================================================================================================================================
 
+Wcgbrowser also accepts the built-in qt command-line arguments, which provide some low-level overrides.  Documentation of these switches can be found at `http://doc.qt.digia.com/qt/qapplication.html#QApplication`_.
 
 Configuration File
 ==================
