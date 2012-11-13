@@ -567,14 +567,10 @@ class WCGWebPage(QWebPage):
 
 ######### Main application code begins here ###################
 
-
-def main(args):
-    app = QApplication(sys.argv)
-    mainwin = MainWindow(args)
-    mainwin.show()
-    app.exec_()
-
 if __name__ == "__main__":
+    # Create the qapplication object, so it can interpret the qt-specific CLI args
+    app = QApplication(sys.argv)
+
     #locate the configuration file to use.
     if os.path.isfile(os.path.expanduser("~/.wcgbrowser.yaml")):
         default_config_file = os.path.expanduser("~/.wcgbrowser.yaml")
@@ -624,11 +620,13 @@ if __name__ == "__main__":
     parser.add_argument("--size", action="store", dest="window_size",
                         default=None,
                         help="Specify the default window size in pixels (widthxheight), or 'max' to maximize")
-    args = parser.parse_args()
+    args = parser.parse_args([str(x) for x in list(app.arguments())][1:])
     DEBUG = args.DEBUG
     DEBUG_LOG = args.debug_log
     if not args.config_file:
         debug ("No config file found or specified; using defaults.")
 
     #run the actual application
-    main(args)
+    mainwin = MainWindow(args)
+    mainwin.show()
+    app.exec_()
