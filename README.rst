@@ -91,7 +91,7 @@ quit_button_mode       reset              Just like timeout_mode, only this is t
 allow_external_content False              Whether or not to allow non-html content, e.g. PDF files.  If this is true, you need to specify a content handler for the MIME type or a 404 error, "Network Error", or blank page will likely be displayed to the user.
 navigation_layout      (see below)        Sets the layout of the navigation bar.  See the detailed explanation below.
 allow_plugins          False              If true, enables the use of plugins like flash, java, etc.
-window_size            (empty)            If set, and if fullscreen is //not// set, make the window default to this size.  Can be <width>x<height> (e.g. 800x600) or 'max' for maximized.
+window_size            (empty)            If set, and if fullscreen is *not* set, make the window default to this size.  Can be <width>x<height> (e.g. 800x600) or 'max' for maximized.
 whitelist              (empty)            A list of web domains or hosts to allow access to (see below).
 page_unavailable_html  (empty)            The full path to a file containing HTML which will be displayed when a page cannot be loaded, either because it's not accessible or blocked by security restrictions.
 network_down_html      (empty)            The full path to a file containing HTML which will be displayed when the start_url page cannot be loaded, which probably indicates some kind of network error.
@@ -103,16 +103,24 @@ Bookmarks
 Bookmarks are created in a YAML list called "bookmarks" with this format::
 
     bookmarks:
+      1:
+        name: "Bookmark Name"
+        url: "http://bookmark.url/"
+        description: "A short description of the bookmark, for the tooltip"
+
+      2:
+        name: "Another bookmark name":
+        url: "http://example.com/some_bookmark"
+        description: "A short description of this bookmark"
+
+Bookmark names can include an ampersand to specify an accelerator key.  You can also specify bookmark entries like so::
+
+    bookmarks:
       "Bookmark Name":
-       url: "http://bookmark.url/"
-       description: "A short description of the bookmark, for the tooltip"
+        url: "http://bookmark.url/"
+        description: "A short description of the bookmark, for the tooltip"
 
-     "Another bookmark name":
-      url: "http://example.com/some_bookmark"
-      description: "A short description of this bookmark"
-
-Bookmark names can include an ampersand to specify an accelerator key.
-
+This is more compact, but the downside is that you have no control over the order of the bookmarks (they are ordered by key, so it'll be alphabetical by name).  This mode is really for backwards compatibility, but if you have a lot of bookmarks that you want alphabetized and want to save some typing, this may be the way to go.
 
 Content Handlers
 ----------------

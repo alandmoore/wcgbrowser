@@ -137,6 +137,18 @@ icon_theme:  "oxygen"
 
 # Bookmarks are set in this structure.  They will appear as buttons on the top navigation bar.
 # Each bookmark entry takes this form (note the indentation):
+#
+# key:
+#   name: "&Button Label"
+#   url: "http://www.example.com"
+#   description: "A description of the website which will appear in the tooltip"
+#
+# Where "key" can be whatever you want -- most simply, a number.  The bookmarks will be sorted by key before
+# being displayed, so this allows you to control the order in which they appear.
+#
+# There is also an older, simpler syntax that just uses the key as the name.  The downside
+# is that you have no control over the order of the buttons.
+#
 # "&Button Label":
 #    url: "http://www.example.com"
 #    description: "A description of the website which will appear in the tooltip"
@@ -146,19 +158,22 @@ icon_theme:  "oxygen"
 # Default: empty
 
 bookmarks:
-  "Catalog &Home":
+  1:
+    name: "Catalog &Home"
     url: "http://library.williamson-tn.org"
     description:  "Williamson County Public Library INNOPAC search"
 
-  "&KidsOnline Catalog":
+  2:
+    name: "&KidsOnline Catalog"
     url: "http://library.williamson-tn.org:90"
     description:  "KidsOnline catalog"
-
-  "Computer &Guest":
+  3:
+    name: "Computer &Guest"
     url:  "https://library.williamson-tn.org/selfreg/webcomp"
     description:  "Computer Guest Pass Application"
 
-  "Commission Forum":
+  4:
+    name: "Commission Forum"
     url: "http://www.williamson-tn.org/commission"
     description:  "County Commission Public Forum"
 

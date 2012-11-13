@@ -269,12 +269,15 @@ class MainWindow(QMainWindow):
                     if configuration.get("bookmarks"):
                         for bookmark in configuration.get("bookmarks").items():
                             debug("Bookmark:\n" + bookmark.__str__())
+                            #bookmark name will use the "name" attribute, if present
+                            #or else just the key:
+                            bookmark_name = bookmark[1].get("name") or bookmark[0]
                             #Create a button for the bookmark as a QAction,
                             #which we'll add to the toolbar
                             button = self.createAction(
-                                bookmark[0],
+                                bookmark_name,
                                 lambda url=bookmark[1].get("url"): self.browser_window.load(QUrl(url)),
-                                QKeySequence.mnemonic(bookmark[0]),
+                                QKeySequence.mnemonic(bookmark_name),
                                 None,
                                 bookmark[1].get("description")
                                 )
