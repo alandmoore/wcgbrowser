@@ -46,29 +46,30 @@ The included wcgbrowser.yaml file shows an actual configuration that I use at ou
 
     python browser.py
 
-The --help switch should give you an up-to-date summary of the available command-line switches, but here are a few important ones:
+At a minimum, you need to specify a "start url" using either the config file or the "-l" switch, or else the browser isn't much use.  Advanced configuration is probably best done in the configuration file, but many basic features can be enabled or disabled at the command line using these switches:
 
 ====================    =====================================================================================================================================
  Switch                 Description
 ====================    =====================================================================================================================================
--l, --url               The "start location" for the browser.  This is the initial URL it will load, and where it will return when reset.
--f, --fullscreen        Makes the window fill the screen, no window decorations
--n, --no-navigation     Turn off the navigation panel (back, forward, home, shortcuts, etc).  Make sure your actual web application is fully navigable!
+--debug_log             Send debugging output to specified file
+--size                  Set the initial window size as "<width>x<height>" (e.g. "800x600") or just "max" for maximized
 -c, --config-file       Specify a configuration file to use
 -d, --debug             Provide debugging output to stdout
---debug_log             Send debugging output to specified file
--t, --timeout           The timeout for the inactivity monitor.  After this many seconds of inactivity, reset the browser
+-e, --allow_external    Allow the browser to open content in external programs via MIME type
+-f, --fullscreen        Makes the window fill the screen, no window decorations
+-g, --allow_plugins     Allow the use of plugins like Flash, Java, etc.
+-h, --help              Show quick help on command line syntax
 -i, --icon-theme        The icon theme to use.  You'll need to install these themes yourself
--z, --zoom              The default zoom factor for content.  0 ignores this.  1 is default, 2 would be double size, 0.5 would be half-size, etc.
+-l, --url               The "start location" for the browser.  This is the initial URL it will load, and where it will return when reset.
+-n, --no-navigation     Turn off the navigation panel (back, forward, home, shortcuts, etc).  Make sure your actual web application is fully navigable!
 -p, --popups            Enable the creation of new windows when a link is clicked that opens in a new window, or javascript tries to open a window
+-t, --timeout           The timeout for the inactivity monitor.  After this many seconds of inactivity, reset the browser
 -u, --user	        Set the default username to be sent when a site requests authentication
 -w, --password	        Set the default password to be sent when a site requests authentication
--e, --allow_external    Allow the browser to open content in external programs via MIME type
--g, --allow_plugins     Allow the use of plugins like Flash, Java, etc.
---size                  Set the initial window size as "<width>x<height>" (e.g. "800x600") or just "max" for maximized
+-z, --zoom              The default zoom factor for content.  0 ignores this.  1 is default, 2 would be double size, 0.5 would be half-size, etc.
 ====================    =====================================================================================================================================
 
-Wcgbrowser also accepts the built-in qt command-line arguments, which provide some low-level overrides.  Documentation of these switches can be found at `http://doc.qt.digia.com/qt/qapplication.html#QApplication`_.
+Wcgbrowser also accepts the built-in qt command-line arguments, which provide some low-level overrides.  Documentation of these switches can be found at http://doc.qt.digia.com/qt/qapplication.html#QApplication.
 
 Configuration File
 ==================
@@ -174,9 +175,9 @@ Whenever the user clicks a link or otherwise tries to navigate to a page, the ho
 
 Some things are automatic:
 
- - The start_url host is automatically whitelisted
- - Bookmark hosts are automatically whitelisted
- - Subdomains are also automatically whitelisted.  Thus, if you whitelist "example.com", then "foo.example.com" will be whitelisted as well (though "foo-example.com" will not, since that's actually a different domain).
+- The start_url host is automatically whitelisted
+- Bookmark hosts are automatically whitelisted
+- Subdomains are also automatically whitelisted.  Thus, if you whitelist "example.com", then "foo.example.com" will be whitelisted as well (though "foo-example.com" will not, since that's actually a different domain).
 
 If you just want to whitelist the start_url and bookmark urls and nothing else, you can just do this in the config::
 
