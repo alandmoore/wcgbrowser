@@ -7,7 +7,7 @@ Released under the GNU GPL v3
 
 # PyQT imports
 from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
-     QSizePolicy, QKeySequence, QToolBar
+     QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
 from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, \
      Qt, QTemporaryFile, QDir, QCoreApplication
 from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
@@ -171,8 +171,10 @@ class MainWindow(QMainWindow):
         self.quit_button_tooltip = (self.quit_button_mode == 'close' and "Click here to quit the browser.") or \
         """Click here when you are done.\nIt will clear your browsing history and return you to the start page."""
         self.window_size = options.window_size or self.configuration.get("window_size", None)
+        self.allow_printing = self.configuration.get("allow_printing", False)
         qb_mode_callbacks = {'close': self.close, 'reset': self.reset_browser}
         to_mode_callbacks = {'close': self.close, 'reset': self.reset_browser, 'screensaver': self.screensaver}
+
 
         #If the whitelist is activated, add the bookmarks and start_url
         if self.whitelist:
@@ -199,7 +201,8 @@ class MainWindow(QMainWindow):
             start_url=self.start_url,
             ssl_mode=self.ssl_mode,
             allow_plugins = self.allow_plugins,
-            whitelist = self.whitelist
+            whitelist = self.whitelist,
+            allow_printing = self.allow_printing
             )
 
         if self.icon_theme is not None and QT_VERSION_STR > '4.6':
@@ -253,6 +256,8 @@ class MainWindow(QMainWindow):
                 QKeySequence("Alt+-"),
                 "zoom-out",
                 "Decrease the size of text and images on the page")
+            if self.allow_printing:
+                self.nav_items["print"] = self.createAction("Print", self.browser_window.print_webpage, QKeySequence("Ctrl+p"), "document-print", "Print this page")
 
             #Add all the actions to the navigation bar.
             for item in self.navigation_layout:
@@ -283,7 +288,9 @@ class MainWindow(QMainWindow):
                                 )
                             self.navigation_bar.addAction(button)
                 else:
-                    self.navigation_bar.addAction(self.nav_items.get(item, None))
+                    action = self.nav_items.get(item, None)
+                    if action:
+                        self.navigation_bar.addAction(action)
 
             #This removes the ability to toggle off the navigation bar:
             self.nav_toggle = self.navigation_bar.toggleViewAction()
@@ -407,6 +414,7 @@ class WcgWebView(QWebView):
         self.default_user = kwargs.get('default_user', '')
         self.default_password = kwargs.get('default_password', '')
         self.allow_plugins = kwargs.get("allow_plugins", False)
+        self.allow_printing = kwargs.get("allow_printing", False)
         self.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, self.allow_popups)
         #JavascriptCanCloseWindows is in the API documentation, but apparently only exists after 4.8
         if QT_VERSION_STR >= '4.8':
@@ -424,6 +432,13 @@ class WcgWebView(QWebView):
         self.start_url = kwargs.get("start_url", '')
         self.ssl_mode = kwargs.get("ssl_mode", "strict")
         self.whitelist = kwargs.get("whitelist", False)
+
+        #add printing to context menu if it's allowed
+        if self.allow_printing:
+            self.print_action = QAction("Print", self)
+            self.print_action.setIcon(QIcon.fromTheme("document-print"))
+            self.connect(self.print_action, SIGNAL("triggered()"), self.print_webpage)
+            self.print_action.setToolTip("Print this web page")
 
         #connections for wcgwebview
         self.connect(self.page().networkAccessManager(),
@@ -451,6 +466,16 @@ class WcgWebView(QWebView):
             return self.popup
         else:
             debug("Popup not loaded on %s" % self.url().toString())
+
+    def contextMenuEvent(self, event):
+        menu = QMenu(self)
+        for action in [QWebPage.Back, QWebPage.Forward, QWebPage.Reload, QWebPage.Stop]:
+            action = self.pageAction(action)
+            if action.isEnabled():
+                menu.addAction(action)
+        if self.allow_printing:
+            menu.addAction(self.print_action)
+        menu.exec_(event.globalPos())
 
     def sslErrorHandler(self, reply, errorList):
         """
@@ -557,6 +582,19 @@ class WcgWebView(QWebView):
                 debug("404 on URL: %s" % self.url().toString())
                 self.setHtml(self.html404, QUrl())
         return True
+
+    def print_webpage(self):
+        """
+        Callback for the print action.  Should show a print dialog and print the webpage to the printer.
+        """
+        printer = QPrinter()
+        print_dialog = QPrintDialog(printer, self)
+        print_dialog.setWindowTitle("Print Page")
+        if print_dialog.exec_() == QDialog.Accepted:
+            self.print_(printer)
+        else:
+            return False
+
 #### END WCGWEBVIEW DEFINITION ####
 
 #### WCGWEBPAGE #####

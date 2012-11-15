@@ -91,12 +91,15 @@ fullscreen: False
 #navigation: True
 
 # "navigation_layout" is a list which sets the order and presence of buttons on the navbar from left to right.
-# Valid values include "back", "forward", "refresh", "stop", "zoom_in", "zoom_out", "bookmarks", and "quit".
+# Valid values include "back", "forward", "refresh", "stop", "zoom_in", "zoom_out", "bookmarks", "print",  and "quit".
 # "separator" will also add a separator line, and "spacer" will add an expanding spacer.
+# Note that "print" will only show up if printing is enabled (allow_print), and "bookmarks" will only show up
+# if bookmarks are defined.
 # The default layout is ["back", "forward", "refresh", "stop", "zoom_in", "zoom_out", "separator", "bookmarks", "separator", "spacer", "quit"]
 # Here's an alternative layout:
 
 #navigation_layout: ["back", "forward", "refresh", "spacer", "bookmarks", "spacer", "quit"]
+
 
 # "icon_theme" probably only works on Linux, but set it to an installed theme to set the icons for back/forward/reload/quit.
 # The default is whatever your qt4 is set to use.
@@ -133,6 +136,14 @@ icon_theme:  "oxygen"
 # Default: empty
 
 #network_down_html: "examples/custom_network_down.html"
+
+# Printing can be enabled by setting "allow_printing" to "True"
+# When enabled, "print" will appear in the page's context menu.
+# If "print" is included in the navigation layout, it will put a print button
+# on the navigation bar too.
+# Default: False
+
+#allow_printing: True
 
 
 # Bookmarks are set in this structure.  They will appear as buttons on the top navigation bar.

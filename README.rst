@@ -95,6 +95,7 @@ window_size            (empty)            If set, and if fullscreen is *not* set
 whitelist              (empty)            A list of web domains or hosts to allow access to (see below).
 page_unavailable_html  (empty)            The full path to a file containing HTML which will be displayed when a page cannot be loaded, either because it's not accessible or blocked by security restrictions.
 network_down_html      (empty)            The full path to a file containing HTML which will be displayed when the start_url page cannot be loaded, which probably indicates some kind of network error.
+allow_printing         False              Enable printing of web pages from the context menu or toolbar.
 ====================== ===============    ===============================================================================================================================================================================================================================================================
 
 Bookmarks
@@ -142,6 +143,7 @@ Navigation Layout
 The "navigation_layout" parameter is a list of items to place on the navigation bar, if it's showing.  You can choose from the following:
 
 - "back", "forward", "refresh", "stop":  the traditional browser navigation buttons.
+- "print": a button to open the print dialog for the main page.
 - "zoom_in", "zoom_out":  the zoom buttons
 - "bookmarks":  your bookmark buttons
 - "quit":  your "I'm finished" button
