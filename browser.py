@@ -341,7 +341,6 @@ class MainWindow(QMainWindow):
         if self.screensaver_active is True:
             self.screensaver_active = False
             self.disconnect(self.event_filter, SIGNAL("activity"), self.reset_browser)
-            self.navigation_bar.show()
         if self.event_filter:
             self.event_filter.blockSignals(False)
         self.removeToolBar(self.navigation_bar)
