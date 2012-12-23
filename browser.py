@@ -323,7 +323,9 @@ class MainWindow(QMainWindow):
             self.popup.close()
         if self.show_navigation is True:
             self.navigation_bar.hide()
+        self.browser_window.setZoomFactor(self.zoomfactor)
         self.browser_window.load(QUrl(self.screensaver_url))
+        self.disconnect(self.event_filter, SIGNAL("activity"), self.reset_browser)
         self.connect(self.event_filter, SIGNAL("activity"), self.reset_browser)
 
     def reset_browser(self):
