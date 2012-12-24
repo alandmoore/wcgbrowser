@@ -345,7 +345,8 @@ class MainWindow(QMainWindow):
             self.disconnect(self.event_filter, SIGNAL("activity"), self.reset_browser)
         if self.event_filter:
             self.event_filter.blockSignals(False)
-        self.removeToolBar(self.navigation_bar)
+        if hasattr(self, "navigation_bar"):
+            self.removeToolBar(self.navigation_bar)
         self.build_ui(self.options, self.configuration)
 
     def zoom_in(self):
