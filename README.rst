@@ -219,10 +219,22 @@ Bugs and Limitations
 - There is no password dialog when a page requests authentication.  You can set a single user/password set in the config file to be sent whenever a site does request it, or provide auth credentials in the URL (in a bookmark/start_url).
 - Mime type handling is a little rough still, and you're bound to get 404 or network errors attempting to download documents when it's disabled.
 
+If you find bugs, please report them as an "issue" at the project's github page: http://github.com/alandmoore/wcgbrowser/issues. If your "bug" is really a feature request, see below.
+
 Contributing
 ============
 
 Contributions are welcome, so long as they are consistent with the spirit and intent of the browser -- that is, they are features useful in a kiosk situation, and keep the browser simple to configure.  I would also prefer that changes to features or behavior are opt-in (require a switch to enable them), unless it just makes no sense to do it that way.
+
+Making Feature Requests
+=======================
+
+If there are features you'd like to see supported in this project, you have three options to see them implemented:
+
+- Write the code (or have it written by someone else) and submit it to the project as a pull request.
+- Contact me and offer to sponsor the development of the feature.  My rates are reasonable and negotiable.
+- Keep your fingers crossed and hope that somebody else does one of the previous two things for the feature you want.
+
 
 License
 =======
