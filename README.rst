@@ -95,6 +95,7 @@ quit_button_text       "I'm &Finished"    Text to display on the quit/reset butt
 screensaver_url        about:blank        The URL to visit when idle.  Only matters when timeout_mode is 'screensaver' and 'timeout' is nonzero.
 ssl_mode               strict             Defines how the browser handles ssl certificate errors.  "strict" will just give an error and prevent access to the problematic URL.  "ignore" will silently ignore the errors and allow access.
 start_url              about:blank        The starting URL or "home page"
+stylesheet             (empty)            Filename of a qss stylesheet to use for styling the application window.  See example file.
 timeout                0                  Number of seconds of inactivity before the browser closes or resets itself. A value of 0 disables the feature.
 timeout_mode           reset              The action performed on inactivity timeout.  Values can be "reset" (to return to the start URL and clear history), "close" (to close the program), or 'screensaver' (to display the screensaver_url while idle)
 whitelist              (empty)            A list of web domains or hosts to allow access to (see below).
