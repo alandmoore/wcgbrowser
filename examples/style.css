@@ -1,0 +1,28 @@
+/* Example stylesheet for WCGBrowser */
+/* This is NOT CSS, it's QT Stylesheets, which is close but not exactly the same */
+/* Please see http://qt-project.org/doc/qt-4.8/stylesheet-reference.html for information about QSS */
+
+/* this style is really bad and ugly, it's just to show you what can be done.  Graphic designers are welcome to make pull requests...*/
+
+
+/* The "global" section affects the entire application window */
+#global { background-color: qlineargradient(spread: reflect, x1:0, y1:0, x2:.1, y2:0, stop:0 red, stop:1 #333333);}
+
+/* "web_content" is the actual browser section of the window.  */
+/* This isn't terribly useful, since it mostly affects the look of form widgets */
+
+#web_content {background-color: #EEFFEE;}
+
+
+/* "web_content QMenu" will style the context menu that pops up when you right-click the browser area */
+
+#web_content QMenu {background-color: orange; }
+
+/* "navigation" is the navigation bar, if it exists */
+/* It's kind of redundant, since currently the only area really affected by "global" is the navigation bar */
+
+#navigation {  }
+
+/* "navigation_button" is the bookmarks and navigation control buttons in the navigation bar */
+
+#navigation_button{ border-style: dashed; border-width: 1px; border-color: black; background-color: rgba(224, 224, 255, 75%); font-size: 18pt; color: darkred; }

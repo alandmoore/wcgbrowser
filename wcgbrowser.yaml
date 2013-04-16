@@ -107,6 +107,11 @@ fullscreen: False
 icon_theme:  "oxygen"
 
 
+# "stylesheet" will assign a QT stylesheet to the application.  See examples for some style sheets.
+# The default is empty, which will use the default system theme
+
+#stylesheet: "examples/style.css"
+
 # "quit_button_text" changes the text on the quit/reset button at the upper right
 # default is "I'm Finished"
 

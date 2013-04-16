@@ -119,6 +119,16 @@ class MainWindow(QMainWindow):
         self.whitelist = self.configuration.get("whitelist", False)
         self.popup = None
 
+        # Stylesheet support
+        self.stylesheet = self.configuration.get("stylesheet")
+        if self.stylesheet:
+            try:
+                with open(self.stylesheet) as ss:
+                    self.setStyleSheet(ss.read())
+            except:
+                debug("""Problem loading stylesheet file "%s", using default style.""" % self.stylesheet)
+        self.setObjectName("global")
+
         #The following variable sets the error code when a page cannot be reached,
         # either because of a generic 404, or because you've blocked it.
         # You can override it using the "page_unavailable_html" setting in the configuration file.
@@ -204,6 +214,7 @@ class MainWindow(QMainWindow):
             whitelist = self.whitelist,
             allow_printing = self.allow_printing
             )
+        self.browser_window.setObjectName("web_content")
 
         if self.icon_theme is not None and QT_VERSION_STR > '4.6':
             QIcon.setThemeName(self.icon_theme)
@@ -226,6 +237,7 @@ class MainWindow(QMainWindow):
         #Set up the top navigation bar if it's configured to exist
         if self.show_navigation is True:
             self.navigation_bar = QToolBar("Navigation")
+            self.navigation_bar.setObjectName("navigation")
             self.addToolBar(Qt.TopToolBarArea, self.navigation_bar)
             self.navigation_bar.setMovable(False)
             self.navigation_bar.setFloatable(False)
@@ -287,10 +299,12 @@ class MainWindow(QMainWindow):
                                 bookmark[1].get("description")
                                 )
                             self.navigation_bar.addAction(button)
+                            self.navigation_bar.widgetForAction(button).setObjectName("navigation_button")
                 else:
                     action = self.nav_items.get(item, None)
                     if action:
                         self.navigation_bar.addAction(action)
+                        self.navigation_bar.widgetForAction(action).setObjectName("navigation_button")
 
             #This removes the ability to toggle off the navigation bar:
             self.nav_toggle = self.navigation_bar.toggleViewAction()
@@ -463,6 +477,7 @@ class WcgWebView(QWebView):
             self.popup = WcgWebView(None, networkAccessManager=self.nam, **self.kwargs)
             # This assumes the window manager has an "X" icon
             # for closing the window somewhere to the right.
+            self.popup.setObjectName("web_content")
             self.popup.setWindowTitle("Click the 'X' to close this window! ---> ")
             self.popup.show()
             return self.popup
