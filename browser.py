@@ -11,7 +11,7 @@ from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
 from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, \
      Qt, QTemporaryFile, QDir, QCoreApplication
 from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
-from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager
+from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
 
 # Standard library imports
 import sys
@@ -117,6 +117,7 @@ class MainWindow(QMainWindow):
         self.screensaver_url = self.configuration.get("screensaver_url", "about:blank")
         self.screensaver_active = False
         self.whitelist = self.configuration.get("whitelist", False)
+        self.proxy_server = options.proxy_server or os.environ.get("http_proxy") or self.configuration.get("proxy_server")
         self.popup = None
 
         # Stylesheet support
@@ -212,7 +213,8 @@ class MainWindow(QMainWindow):
             ssl_mode=self.ssl_mode,
             allow_plugins = self.allow_plugins,
             whitelist = self.whitelist,
-            allow_printing = self.allow_printing
+            allow_printing = self.allow_printing,
+            proxy_server = self.proxy_server
             )
         self.browser_window.setObjectName("web_content")
 
@@ -448,6 +450,7 @@ class WcgWebView(QWebView):
         self.start_url = kwargs.get("start_url", '')
         self.ssl_mode = kwargs.get("ssl_mode", "strict")
         self.whitelist = kwargs.get("whitelist", False)
+        self.proxy_server = kwargs.get("proxy_server")
 
         #add printing to context menu if it's allowed
         if self.allow_printing:
@@ -455,6 +458,15 @@ class WcgWebView(QWebView):
             self.print_action.setIcon(QIcon.fromTheme("document-print"))
             self.connect(self.print_action, SIGNAL("triggered()"), self.print_webpage)
             self.print_action.setToolTip("Print this web page")
+
+            #Set up the proxy if there is one set
+        if self.proxy_server:
+            if ":" in self.proxy_server:
+                proxyhost, proxyport = self.proxy_server.split(":")
+            else:
+                proxyhost = self.proxy_server
+                proxyport = 8080
+            self.nam.setProxy(QNetworkProxy(QNetworkProxy.HttpProxy, proxyhost, int(proxyport)))
 
         #connections for wcgwebview
         self.connect(self.page().networkAccessManager(),
@@ -686,6 +698,9 @@ if __name__ == "__main__":
     parser.add_argument("--size", action="store", dest="window_size",
                         default=None,
                         help="Specify the default window size in pixels (widthxheight), or 'max' to maximize")
+    parser.add_argument("--proxy_server", action="store", dest="proxy_server", default=None,
+                        help="Specify a proxy server string, in the form host:port")
+
     # rather than parse sys.argv here, we're parsing app.arguments so that qt-specific args are removed.
     # we also need to remove argument 0.
     args = parser.parse_args([str(x) for x in list(app.arguments())][1:])

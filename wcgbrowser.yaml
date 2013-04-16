@@ -25,6 +25,12 @@ start_url: "http://library.williamson-tn.org"
 #default_user: user
 #default_password: PaSsWoRd
 
+# Proxy settings
+# You can configure an HTTP proxy and port for the application to use; the format is <host>:<port>
+# Alternately you can just do <host> to use the default port of 8080
+# default: empty (no proxy)
+
+#proxy_server: "192.168.1.1:3128"
 
 # Timeout will either clear the history and reset the homepage, or close the program
 # after this number of seconds of inactivity.

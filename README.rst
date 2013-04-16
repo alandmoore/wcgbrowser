@@ -53,6 +53,7 @@ At a minimum, you need to specify a "start url" using either the config file or 
 ====================    =====================================================================================================================================
 --debug_log             Send debugging output to specified file
 --size                  Set the initial window size as "<width>x<height>" (e.g. "800x600") or just "max" for maximized
+--proxy_server          Set the proxy server host and port, in the form <host>:<port>
 -c, --config-file       Specify a configuration file to use
 -d, --debug             Provide debugging output to stdout
 -e, --allow_external    Allow the browser to open content in external programs via MIME type
@@ -90,6 +91,7 @@ navigation             True               Display the navigation bar at the top 
 navigation_layout      (see below)        Sets the layout of the navigation bar.  See the detailed explanation below.
 network_down_html      (empty)            The full path to a file containing HTML which will be displayed when the start_url page cannot be loaded, which probably indicates some kind of network error.
 page_unavailable_html  (empty)            The full path to a file containing HTML which will be displayed when a page cannot be loaded, either because it's not accessible or blocked by security restrictions.
+proxy_server           (empty)            Sets the proxy server string for HTTP proxy.  Takes the form "host:port", or just "host" if you want to use the default port of 8080.
 quit_button_mode       reset              Just like timeout_mode, only this is the action taken when the quit button is pressed (same options)
 quit_button_text       "I'm &Finished"    Text to display on the quit/reset button.  Can include an accelerator indicator (&).
 screensaver_url        about:blank        The URL to visit when idle.  Only matters when timeout_mode is 'screensaver' and 'timeout' is nonzero.
@@ -212,6 +214,24 @@ This configuration would do the following:
 - As soon as a user steps up and generates activity (moves a mouse, touches the screen, etc), the navigation bar (if configured) will reappear, and the browser will load http://example.com/kiosk.
 
 The screensaver_url could be, for example, an image rotator, a page with ads, a welcome message, etc.  It doesn't really matter, but keep in mind the user can't actually interact with the screensaver page, because as soon as they touch a mouse or keyboard, the start_url will load.
+
+Proxy Server
+------------
+
+WCGBrowser will allow you to set a host (name or IP) and port number for an HTTP proxy.  HTTPS, FTP, SOCKS, or authenticated proxy is not currently supported.  You can set the proxy settings one of three ways:
+
+- The environment variable "http_proxy" is respected
+- The CLI switch --proxy_server
+- The configuration file option "proxy_server"
+
+To set the proxy server, use the format "host:port", as in these examples::
+
+    proxyserver.mynetwork.local:3128
+    localhost:8080
+    192.168.1.1:8880
+
+If you neglect to include a port, and just put an IP address or hostname, the port 8080 will be used by default.
+
 
 Bugs and Limitations
 ====================
