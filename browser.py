@@ -5,14 +5,25 @@ Written by Alan D Moore, http://www.alandmoore.com
 Released under the GNU GPL v3
 """
 
-# PyQT imports
-from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
+# PyQT/PySide imports
+try:
+    from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
      QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
-from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, \
-     Qt, QTemporaryFile, QDir, QCoreApplication
-from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
-from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
+    from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, \
+     Qt, QTemporaryFile, QDir, QCoreApplication, qVersion
+    from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
+    from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
 
+except:
+    """If not PyQT, try PySide"""
+    from PySide.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
+     QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
+    from PySide.QtCore import QUrl, SIGNAL, QTimer, QObject, QEvent, \
+     Qt, QTemporaryFile, QDir, QCoreApplication, qVersion
+    from PySide.QtWebKit import QWebView, QWebPage, QWebSettings
+    from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
+    QT_VERSION_STR = qVersion()
+    
 # Standard library imports
 import sys
 import os
@@ -21,6 +32,8 @@ import yaml
 import re
 import subprocess
 import datetime
+
+
 
 #MESSAGE STRINGS
 DEFAULT_404 = """<h2>Sorry, can't go there</h2>

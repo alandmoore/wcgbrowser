@@ -32,11 +32,11 @@ Requirements
 ============
 
 - Python 2.6 or higher (should work with python 3.x)
-- PyQT4, preferably 4.6 or higher
+- PyQT4 OR PySide, preferably for QT 4.6 or higher
 - Python YAML library (http://pyyaml.org)
 - Python argparse library
 
-It should work on any platform, but it's only been tested on Debian (Squeeze) and Ubuntu (Lucid Lynx or higher)
+It should work on any platform, but it's only been tested on Debian (Squeeze) and Ubuntu (Lucid Lynx or higher).  PyQT was the original development platform and the program will prefer it if it's installed, but it should "Just Work™" with PySide too (PySide is easier to setup in virtualenv).
 
 
 Usage
