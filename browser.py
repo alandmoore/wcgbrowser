@@ -23,7 +23,7 @@ except:
     from PySide.QtWebKit import QWebView, QWebPage, QWebSettings
     from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
     QT_VERSION_STR = qVersion()
-    
+
 # Standard library imports
 import sys
 import os
@@ -190,6 +190,7 @@ class MainWindow(QMainWindow):
         self.content_handlers = self.configuration.get("content_handlers", {})
         self.allow_external_content = options.allow_external_content or self.configuration.get("allow_external_content", False)
         self.allow_plugins = options.allow_plugins or self.configuration.get("allow_plugins", False)
+        self.privacy_mode = self.configuration.get("privacy_mode", True)
         self.quit_button_mode = self.configuration.get("quit_button_mode", 'reset')
         self.quit_button_text = self.configuration.get("quit_button_text", "I'm &Finished")
         self.quit_button_tooltip = (self.quit_button_mode == 'close' and "Click here to quit the browser.") or \
@@ -227,7 +228,8 @@ class MainWindow(QMainWindow):
             allow_plugins = self.allow_plugins,
             whitelist = self.whitelist,
             allow_printing = self.allow_printing,
-            proxy_server = self.proxy_server
+            proxy_server = self.proxy_server,
+            privacy_mode = self.privacy_mode
             )
         self.browser_window.setObjectName("web_content")
 
@@ -450,7 +452,7 @@ class WcgWebView(QWebView):
         #JavascriptCanCloseWindows is in the API documentation, but apparently only exists after 4.8
         if QT_VERSION_STR >= '4.8':
             self.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, self.allow_popups)
-        self.settings().setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
+        self.settings().setAttribute(QWebSettings.PrivateBrowsingEnabled, kwargs.get("privacy_mode", True))
         self.settings().setAttribute(QWebSettings.LocalStorageEnabled, True)
         self.settings().setAttribute(QWebSettings.PluginsEnabled, self.allow_plugins)
         self.zoomfactor = kwargs.get("zoomfactor", 1)
@@ -464,7 +466,7 @@ class WcgWebView(QWebView):
         self.ssl_mode = kwargs.get("ssl_mode", "strict")
         self.whitelist = kwargs.get("whitelist", False)
         self.proxy_server = kwargs.get("proxy_server")
-
+        
         #add printing to context menu if it's allowed
         if self.allow_printing:
             self.print_action = QAction("Print", self)

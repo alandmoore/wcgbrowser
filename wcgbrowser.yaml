@@ -156,6 +156,10 @@ icon_theme:  "oxygen"
 
 #allow_printing: True
 
+# privacy_mode Configures whether or not "Private Browsing" mode is enabled on the webkit widget.
+# Default: True
+
+#privacy_mode: False
 
 # Bookmarks are set in this structure.  They will appear as buttons on the top navigation bar.
 # Each bookmark entry takes this form (note the indentation):
