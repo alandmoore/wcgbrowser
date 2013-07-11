@@ -33,8 +33,6 @@ import re
 import subprocess
 import datetime
 
-
-
 #MESSAGE STRINGS
 DEFAULT_404 = """<h2>Sorry, can't go there</h2>
 <p>This page is not available on this computer.</p>
@@ -366,6 +364,9 @@ class MainWindow(QMainWindow):
         Or when the user clicks the "finished" button when in
         'reset' mode.
         """
+        # Clear out the memory cache
+        QWebSettings.clearMemoryCaches()
+        self.browser_window.history().clear()
         # self.navigation_bar.clear() doesn't do its job,
         #so remove the toolbar first, then rebuild the UI.
         debug("RESET BROWSER")
@@ -466,7 +467,7 @@ class WcgWebView(QWebView):
         self.ssl_mode = kwargs.get("ssl_mode", "strict")
         self.whitelist = kwargs.get("whitelist", False)
         self.proxy_server = kwargs.get("proxy_server")
-        
+
         #add printing to context menu if it's allowed
         if self.allow_printing:
             self.print_action = QAction("Print", self)
