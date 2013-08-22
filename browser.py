@@ -473,6 +473,7 @@ class WcgWebView(QWebView):
             self.print_action = QAction("Print", self)
             self.print_action.setIcon(QIcon.fromTheme("document-print"))
             self.connect(self.print_action, SIGNAL("triggered()"), self.print_webpage)
+            self.connect(self.page(), SIGNAL("printRequested(QWebFrame *)"), self.print_webpage)
             self.print_action.setToolTip("Print this web page")
 
             #Set up the proxy if there is one set
