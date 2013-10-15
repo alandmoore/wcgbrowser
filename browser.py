@@ -6,23 +6,31 @@ Released under the GNU GPL v3
 """
 
 # PyQT/PySide imports
-try:
-    from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
-     QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
-    from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, \
-     Qt, QTemporaryFile, QDir, QCoreApplication, qVersion
-    from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
-    from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
+# try:
+#     from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
+#      QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
+#     from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, \
+#      Qt, QTemporaryFile, QDir, QCoreApplication, qVersion
+#     from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
+#     from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
 
-except:
-    """If not PyQT, try PySide"""
-    from PySide.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
-     QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
-    from PySide.QtCore import QUrl, SIGNAL, QTimer, QObject, QEvent, \
-     Qt, QTemporaryFile, QDir, QCoreApplication, qVersion
-    from PySide.QtWebKit import QWebView, QWebPage, QWebSettings
-    from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
-    QT_VERSION_STR = qVersion()
+# except:
+#     """If not PyQT, try PySide"""
+#     from PySide.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
+#      QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
+#     from PySide.QtCore import QUrl, SIGNAL, QTimer, QObject, QEvent, \
+#      Qt, QTemporaryFile, QDir, QCoreApplication, qVersion
+#     from PySide.QtWebKit import QWebView, QWebPage, QWebSettings
+#     from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
+#     QT_VERSION_STR = qVersion()
+
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWebKit import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtWebKitWidgets import *
+from PyQt5.QtNetwork import *
+
 
 # Standard library imports
 import sys
@@ -95,7 +103,7 @@ class MainWindow(QMainWindow):
     it defines the GUI window for the browser
     """
     def createAction(self, text, slot=None, shortcut=None, icon=None, tip=None,
-                     checkable=False, signal="triggered()"):
+                     checkable=False, signal="triggered"):
         """Borrowed from 'Rapid GUI Development with PyQT by Mark Summerset'"""
         action = QAction(text, self)
         if icon is not None:
@@ -107,7 +115,7 @@ class MainWindow(QMainWindow):
             action.setToolTip(tip)
             action.setStatusTip(tip)
         if slot is not None:
-            self.connect(action, SIGNAL(signal), slot)
+            action.__getattr__(signal).connect(slot)
         if checkable:
             action.setCheckable()
         return action
@@ -340,8 +348,7 @@ class MainWindow(QMainWindow):
             self.event_filter = InactivityFilter(inactivity_timeout)
             QCoreApplication.instance().installEventFilter(self.event_filter)
             self.browser_window.page().installEventFilter(self.event_filter)
-            self.connect(self.event_filter, SIGNAL("timeout()"),
-                         to_mode_callbacks.get(timeout_mode, self.reset_browser))
+            self.event_filter.timeout.connect(to_mode_callbacks.get(timeout_mode, self.reset_browser))
         else:
             self.event_filter = None
 
@@ -356,8 +363,8 @@ class MainWindow(QMainWindow):
             self.navigation_bar.hide()
         self.browser_window.setZoomFactor(self.zoomfactor)
         self.browser_window.load(QUrl(self.screensaver_url))
-        self.disconnect(self.event_filter, SIGNAL("activity"), self.reset_browser)
-        self.connect(self.event_filter, SIGNAL("activity"), self.reset_browser)
+        self.event_filter.activity.disconnect()
+        self.event_filter.activity.connect(self.reset_browser)
 
     def reset_browser(self):
         """
@@ -415,17 +422,19 @@ class InactivityFilter(QTimer):
     which is basically a timer that resets every time "activity"
     events are detected in the main application.
     """
+    activity = pyqtSignal()
+    
     def __init__(self, timeout=0, parent=None):
         super(InactivityFilter, self).__init__(parent)
         # timeout needs to be converted from seconds to milliseconds
-        self.timeout = timeout * 1000
-        self.setInterval(self.timeout)
+        self.timeout_time = timeout * 1000
+        self.setInterval(self.timeout_time)
         self.start()
 
     def eventFilter(self, object, event):
         if event.type() in (QEvent.MouseMove, QEvent.MouseButtonPress, QEvent.HoverMove, QEvent.KeyPress, QEvent.KeyRelease, ):
-            self.emit(SIGNAL("activity"))
-            self.start(self.timeout)
+            self.activity.emit()
+            self.start(self.timeout_time)
             #commented this debug code, because it spits out way to much information.
             #uncomment if you're having trouble with the timeout detecting user
             #inactivity correctly to determine what it's detecting and ignoring
@@ -474,8 +483,8 @@ class WcgWebView(QWebView):
         if self.allow_printing:
             self.print_action = QAction("Print", self)
             self.print_action.setIcon(QIcon.fromTheme("document-print"))
-            self.connect(self.print_action, SIGNAL("triggered()"), self.print_webpage)
-            self.connect(self.page(), SIGNAL("printRequested(QWebFrame *)"), self.print_webpage)
+            self.print_action.triggered.connect(self.print_webpage)
+            self.page().printRequested.connect(self.print_webpage)
             self.print_action.setToolTip("Print this web page")
 
             #Set up the proxy if there is one set
@@ -488,16 +497,11 @@ class WcgWebView(QWebView):
             self.nam.setProxy(QNetworkProxy(QNetworkProxy.HttpProxy, proxyhost, int(proxyport)))
 
         #connections for wcgwebview
-        self.connect(self.page().networkAccessManager(),
-                     SIGNAL("authenticationRequired(QNetworkReply * , QAuthenticator *)"),
-                     self.auth_dialog)
-        self.connect(self.page(), SIGNAL("unsupportedContent(QNetworkReply *)"),
-                     self.handle_unsupported_content)
-        self.connect(self.page().networkAccessManager(),
-                     SIGNAL("sslErrors (QNetworkReply *, const QList<QSslError> &)"),
-                     self.sslErrorHandler)
-        self.connect(self, SIGNAL("urlChanged(QUrl)"), self.onLinkClick)
-        self.connect(self, SIGNAL("loadFinished(bool)"), self.onLoadFinished)
+        self.page().networkAccessManager().authenticationRequired.connect(self.auth_dialog)
+        self.page().unsupportedContent.connect(self.handle_unsupported_content)
+        self.page().networkAccessManager().sslErrors.connect(self.sslErrorHandler)
+        self.urlChanged.connect(self.onLinkClick)
+        self.loadFinished.connect(self.onLoadFinished)
 
     def createWindow(self, type):
         """
@@ -572,7 +576,7 @@ class WcgWebView(QWebView):
             else:
                 # print(self.url())
                 self.load(self.url())
-            self.connect(self.reply, SIGNAL("finished()"), self.display_downloaded_content)
+            self.reply.finished.connect(self.display_downloaded_content)
 
     def display_downloaded_content(self):
         """
