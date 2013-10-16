@@ -209,6 +209,8 @@ class MainWindow(QMainWindow):
             bookmarks = self.configuration.get("bookmarks")
             if bookmarks:
                 self.whitelist += [str(QUrl(b.get("url")).host()) for k,b in bookmarks.items()]
+                self.whitelist = list(set(self.whitelist)) #uniquify
+                self.whitelist = [item.replace(".", "\.") for item in self.whitelist] #escape dots
             debug("Generated whitelist: " + str(self.whitelist))
 
         ###Start GUI configuration###
@@ -594,22 +596,24 @@ class WcgWebView(QWebView):
         Called whenever the browser navigates to a URL;
         handles the whitelisting logic.
         """
-        #If whitelisting is enabled, and this isn't the start_url host,
-        #check the url to see if the host's domain matches.
-        if self.whitelist \
-          and not (url.host() == QUrl(self.start_url).host()) \
-          and not str(url.toString()) == 'about:blank':
-            site_ok = False
-            for whitelisted_host in self.whitelist:
-                pattern = str("(^|.*\.)" + whitelisted_host + "$")
+        debug("Request URL: %s" % url.toString())
+        if not url.isEmpty():
+            #If whitelisting is enabled, and this isn't the start_url host,
+            #check the url to see if the host's domain matches.
+            if self.whitelist \
+                and not (url.host() == QUrl(self.start_url).host()) \
+                and not str(url.toString()) == 'about:blank':
+                site_ok = False
+                pattern = re.compile(str("(^|.*\.)(" + "|".join(self.whitelist) + ")$"))
                 if re.match(pattern, url.host()):
                     site_ok = True
-            if not site_ok:
-                self.setHtml(self.html404)
-        if not url.isValid():
-            debug("Invalid URL %s" % url.toString())
-        else:
-            debug("Load URL %s" % url.toString())
+                if not site_ok:
+                    debug ("Site violates whitelist: %s" % url.toString)
+                    self.setHtml(self.html404)
+            if not url.isValid():
+                debug("Invalid URL %s" % url.toString())
+            else:
+                debug("Load URL %s" % url.toString())
 
     def onLoadFinished(self, ok):
         """
