@@ -5,31 +5,38 @@ Written by Alan D Moore, http://www.alandmoore.com
 Released under the GNU GPL v3
 """
 
-# PyQT/PySide imports
-# try:
-#     from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
-#      QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
-#     from PyQt4.QtCore import QUrl, SIGNAL, QTimer, QObject, QT_VERSION_STR, QEvent, \
-#      Qt, QTemporaryFile, QDir, QCoreApplication, qVersion
-#     from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
-#     from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
+# PyQT5 imports
 
-# except:
-#     """If not PyQT, try PySide"""
-#     from PySide.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
-#      QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
-#     from PySide.QtCore import QUrl, SIGNAL, QTimer, QObject, QEvent, \
-#      Qt, QTemporaryFile, QDir, QCoreApplication, qVersion
-#     from PySide.QtWebKit import QWebView, QWebPage, QWebSettings
-#     from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
-#     QT_VERSION_STR = qVersion()
+try:
+    from PyQt5.QtGui import QIcon, QKeySequence
+    from PyQt5.QtCore import QUrl, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, QDir, QCoreApplication, qVersion, pyqtSignal
+    from PyQt5.QtWebKit import QWebSettings
+    from PyQt5.QtWidgets import QMainWindow, QAction, QWidget, QApplication, QSizePolicy, QToolBar, QDialog, QMenu
+    from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
+    from PyQt5.QtWebKitWidgets import QWebView, QWebPage
+    from PyQt5.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
 
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWebKit import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtWebKitWidgets import *
-from PyQt5.QtNetwork import *
+except ImportError:
+    # If not PyQt5, try PyQt4
+    try:
+        from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
+            QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
+        from PyQt4.QtCore import QUrl, QTimer, QObject, QT_VERSION_STR, QEvent, \
+            Qt, QTemporaryFile, QDir, QCoreApplication, qVersion, pyqtSignal
+        from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
+        from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
+
+    except ImportError:
+        """If not PyQT, try PySide"""
+        from PySide.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
+             QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
+        from PySide.QtCore import QUrl, QTimer, QObject, QEvent, \
+             Qt, QTemporaryFile, QDir, QCoreApplication, qVersion, pyqtSignal
+        from PySide.QtWebKit import QWebView, QWebPage, QWebSettings
+        from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
+        QT_VERSION_STR = qVersion()
+
+
 
 
 # Standard library imports
@@ -383,7 +390,7 @@ class MainWindow(QMainWindow):
             self.event_filter.blockSignals(True)
         if self.screensaver_active is True:
             self.screensaver_active = False
-            self.disconnect(self.event_filter, SIGNAL("activity"), self.reset_browser)
+            self.event_filter.activity.disconnct()
         if self.event_filter:
             self.event_filter.blockSignals(False)
         if hasattr(self, "navigation_bar"):
@@ -423,7 +430,7 @@ class InactivityFilter(QTimer):
     events are detected in the main application.
     """
     activity = pyqtSignal()
-    
+
     def __init__(self, timeout=0, parent=None):
         super(InactivityFilter, self).__init__(parent)
         # timeout needs to be converted from seconds to milliseconds
