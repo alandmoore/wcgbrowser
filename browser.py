@@ -165,6 +165,19 @@ class MainWindow(QMainWindow):
                 debug("Couldn't read file: %s" % self.configuration.get("network_down_html"))
             self.html_network_down = html_network_down or self.html_network_down
 
+        #If the whitelist is activated, add the bookmarks and start_url
+        if self.whitelist:
+            # we can just specify whitelist = True,
+            #which should whitelist just the start_url and bookmark urls.
+            if type(self.whitelist) is not list:
+                self.whitelist = []
+            self.whitelist.append(str(QUrl(self.start_url).host()))
+            bookmarks = self.configuration.get("bookmarks")
+            if bookmarks:
+                self.whitelist += [str(QUrl(b.get("url")).host()) for k,b in bookmarks.items()]
+                self.whitelist = list(set(self.whitelist)) #uniquify
+            debug("Generated whitelist: " + str(self.whitelist))
+
         self.build_ui(self.options, self.configuration)
 
     def build_ui(self, options, configuration):
@@ -197,21 +210,6 @@ class MainWindow(QMainWindow):
         self.allow_printing = self.configuration.get("allow_printing", False)
         qb_mode_callbacks = {'close': self.close, 'reset': self.reset_browser}
         to_mode_callbacks = {'close': self.close, 'reset': self.reset_browser, 'screensaver': self.screensaver}
-
-
-        #If the whitelist is activated, add the bookmarks and start_url
-        if self.whitelist:
-            # we can just specify whitelist = True,
-            #which should whitelist just the start_url and bookmark urls.
-            if type(self.whitelist) is not list:
-                self.whitelist = []
-            self.whitelist.append(str(QUrl(self.start_url).host()))
-            bookmarks = self.configuration.get("bookmarks")
-            if bookmarks:
-                self.whitelist += [str(QUrl(b.get("url")).host()) for k,b in bookmarks.items()]
-                self.whitelist = list(set(self.whitelist)) #uniquify
-                self.whitelist = [item.replace(".", "\.") for item in self.whitelist] #escape dots
-            debug("Generated whitelist: " + str(self.whitelist))
 
         ###Start GUI configuration###
         self.browser_window = WcgWebView(
@@ -604,11 +602,12 @@ class WcgWebView(QWebView):
                 and not (url.host() == QUrl(self.start_url).host()) \
                 and not str(url.toString()) == 'about:blank':
                 site_ok = False
-                pattern = re.compile(str("(^|.*\.)(" + "|".join(self.whitelist) + ")$"))
+                pattern = re.compile(str("(^|.*\.)(" + "|".join([re.escape(w) for w in self.whitelist]) + ")$"))
+                debug("Whitelist pattern: %s" % pattern.pattern)
                 if re.match(pattern, url.host()):
                     site_ok = True
                 if not site_ok:
-                    debug ("Site violates whitelist: %s" % url.toString)
+                    debug ("Site violates whitelist: %s, %s" % (url.host(), url.toString()))
                     self.setHtml(self.html404)
             if not url.isValid():
                 debug("Invalid URL %s" % url.toString())
