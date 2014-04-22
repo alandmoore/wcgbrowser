@@ -84,6 +84,7 @@ allow_external_content False              Whether or not to allow non-html conte
 allow_plugins          False              If true, enables the use of plugins like flash, java, etc.
 allow_popups           False              Whether or not to allow navigation that requires opening a new browser window, such as javascript "window.open()" calls or links with a target of "_blank".  If False, the navigation will be ignored.  If true, a new window will be created as expected.
 allow_printing         False              Enable printing of web pages from the context menu or toolbar.
+print_settings         (empty)            Specify default printer settings, see below.
 default_password       (empty)            default password to send when pages request authentication
 default_user           (empty)            default username to send when pages request authentication
 icon_theme             (qt4 default)      Icon theme to use for navigation icons
@@ -233,6 +234,28 @@ To set the proxy server, use the format "host:port", as in these examples::
 
 If you neglect to include a port, and just put an IP address or hostname, the port 8080 will be used by default.
 
+Print Settings
+--------------
+
+WCGBrowser supports configuring default printer settings and allows printing without showing a dialog box. Options are set with the "print_settings" variable. For example:
+
+print_settings:
+    silent: True
+    margins: [5, 5, 3, 3]
+    orientation: "landscape"
+
+The following options are supported:
+
+====================== ===============    ===============================================================================================================================================================================================================================================================
+Option Name            Default Value      Explanation
+====================== ===============    ===============================================================================================================================================================================================================================================================
+silent                 False              When True, WCGBrowser will print immediately without showing the printing dialog box.
+orientation            "portrait"         Specifies printing in portrait or landscape orientation.
+size_unit              "millimeter"       Specifies what unit of measure used by the paper_size and margin variables. Can be "millimeter", "point", "inch", "pica", "didot", "cicero", or "devicepixel".
+margins                (printer default)  Specifies the printer margins as a list in the form: [top, bottom, left, right]. Example: [5, 3.5, 6, 2.4]. Units are specified by the size_unit variable.
+paper_size             (printer default)  Specifies the paper size as a list in the form: [width, height]. Example: [500, 650.5]. Units are specified by the size_unit variable.
+resolution             (printer default)  Specifies the printer's resolution in ppi (pixels per inch).
+====================== ===============    ===============================================================================================================================================================================================================================================================
 
 Bugs and Limitations
 ====================
