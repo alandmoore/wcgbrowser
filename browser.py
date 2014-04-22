@@ -668,7 +668,7 @@ class WcgWebView(QWebView):
             else:
                 unit = QPrinter.Millimeter
 
-            margins = self.print_settings.get("margins") or list(printer.getPageMargins(unit)):
+            margins = self.print_settings.get("margins") or list(printer.getPageMargins(unit))
             margins += [unit]
             printer.setPageMargins(*margins)
 
