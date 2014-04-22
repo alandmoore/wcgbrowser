@@ -210,6 +210,7 @@ class MainWindow(QMainWindow):
         """Click here when you are done.\nIt will clear your browsing history and return you to the start page."""
         self.window_size = options.window_size or self.configuration.get("window_size", None)
         self.allow_printing = self.configuration.get("allow_printing", False)
+        self.print_settings = self.configuration.get("print_settings", "{}")
         qb_mode_callbacks = {'close': self.close, 'reset': self.reset_browser}
         to_mode_callbacks = {'close': self.close, 'reset': self.reset_browser, 'screensaver': self.screensaver}
 
@@ -243,6 +244,7 @@ class MainWindow(QMainWindow):
             allow_plugins = self.allow_plugins,
             whitelist = self.whitelist,
             allow_printing = self.allow_printing,
+            print_settings = self.print_settings,
             proxy_server = self.proxy_server,
             privacy_mode = self.privacy_mode
             )
@@ -648,13 +650,40 @@ class WcgWebView(QWebView):
         """
         Callback for the print action.  Should show a print dialog and print the webpage to the printer.
         """
-        printer = QPrinter()
-        print_dialog = QPrintDialog(printer, self)
-        print_dialog.setWindowTitle("Print Page")
-        if print_dialog.exec_() == QDialog.Accepted:
-            self.print_(printer)
-        else:
-            return False
+        printer = QPrinter(mode = QPrinter.PrinterResolution)
+        if self.print_settings:
+            if self.print_settings.get("size_unit"):
+                try:
+                    unit = getattr(QPrinter, self.print_settings.get("size_unit").capitalize())
+                except NameError:
+                    debug("Specified print size unit '" + self.print_settings.get("size_unit") + "' not found, using default")
+                    unit = QPrinter.Millimeter
+            else:
+                unit = QPrinter.Millimeter
+
+            margins = self.print_settings.get("margins") or list(printer.getPageMargins(unit)):
+            margins += [unit]
+            printer.setPageMargins(*margins)
+
+            if self.print_settings.get("orientation") == "landscape":
+                printer.setOrientation(QPrinter.Landscape)
+            else:
+                printer.setOrientation(QPrinter.Portrait)
+
+            if not self.print_settings.get("paper_size") == None:
+                printer.setPaperSize(QSizeF(*self.print_settings.get("paper_size")), unit)
+
+            if not self.print_settings.get("resolution") == None:
+                printer.setResolution(int(self.print_settings.get("resolution")))
+
+        if not self.print_settings.get("silent"):
+            print_dialog = QPrintDialog(printer, self)
+            print_dialog.setWindowTitle("Print Page")
+            if not print_dialog.exec_() == QDialog.Accepted:
+                return False
+
+        self.print(printer)
+        return True
 
 #### END WCGWEBVIEW DEFINITION ####
 
