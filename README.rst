@@ -87,12 +87,13 @@ allow_printing         False              Enable printing of web pages from the 
 print_settings         (empty)            Specify default printer settings, see below.
 default_password       (empty)            default password to send when pages request authentication
 default_user           (empty)            default username to send when pages request authentication
-icon_theme             (qt4 default)      Icon theme to use for navigation icons
+icon_theme             (qt5 default)      Icon theme to use for navigation icons
 navigation             True               Display the navigation bar at the top (back/forward/reload/bookmarks/quit)
 navigation_layout      (see below)        Sets the layout of the navigation bar.  See the detailed explanation below.
 network_down_html      (empty)            The full path to a file containing HTML which will be displayed when the start_url page cannot be loaded, which probably indicates some kind of network error.
 page_unavailable_html  (empty)            The full path to a file containing HTML which will be displayed when a page cannot be loaded, either because it's not accessible or blocked by security restrictions.
 privacy_mode           True               Enable or disable "private browsing mode" on the webkit widget.
+user_agent             (qt5 default)      Overrides the default user agent string.
 proxy_server           (empty)            Sets the proxy server string for HTTP proxy.  Takes the form "host:port", or just "host" if you want to use the default port of 8080.
 quit_button_mode       reset              Just like timeout_mode, only this is the action taken when the quit button is pressed (same options)
 quit_button_text       "I'm &Finished"    Text to display on the quit/reset button.  Can include an accelerator indicator (&).

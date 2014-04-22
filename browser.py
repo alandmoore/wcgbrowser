@@ -211,6 +211,7 @@ class MainWindow(QMainWindow):
         self.window_size = options.window_size or self.configuration.get("window_size", None)
         self.allow_printing = self.configuration.get("allow_printing", False)
         self.print_settings = self.configuration.get("print_settings", "{}")
+        self.user_agent = self.configuration.get("user_agent", None)
         qb_mode_callbacks = {'close': self.close, 'reset': self.reset_browser}
         to_mode_callbacks = {'close': self.close, 'reset': self.reset_browser, 'screensaver': self.screensaver}
 
@@ -246,7 +247,8 @@ class MainWindow(QMainWindow):
             allow_printing = self.allow_printing,
             print_settings = self.print_settings,
             proxy_server = self.proxy_server,
-            privacy_mode = self.privacy_mode
+            privacy_mode = self.privacy_mode,
+            user_agent = self.user_agent
             )
         self.browser_window.setObjectName("web_content")
 
@@ -695,12 +697,17 @@ class WCGWebPage(QWebPage):
     """
     def __init__(self, parent=None):
         super(WCGWebPage, self).__init__(parent)
+        self.user_agent = None
 
     def javaScriptConsoleMessage(self, message, line, sourceid):
         """
         Overridden so that we can send javascript errors to debug.
         """
         debug("Javascript Error in \"%s\" line %d: %s" % (sourceid, line, message))
+
+    def userAgentForUrl(self, url):
+        if self.user_agent: return self.user_agent
+        else: return QWebPage.userAgentForUrl(self, url)
 
 #### END WCGWEBPAGE DEFINITION ####
 
