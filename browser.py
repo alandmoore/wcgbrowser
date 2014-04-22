@@ -212,6 +212,7 @@ class MainWindow(QMainWindow):
         self.allow_printing = self.configuration.get("allow_printing", False)
         self.print_settings = self.configuration.get("print_settings", "{}")
         self.user_agent = self.configuration.get("user_agent", None)
+        self.user_css = self.configuration.get("user_css", None)
         qb_mode_callbacks = {'close': self.close, 'reset': self.reset_browser}
         to_mode_callbacks = {'close': self.close, 'reset': self.reset_browser, 'screensaver': self.screensaver}
 
@@ -248,7 +249,8 @@ class MainWindow(QMainWindow):
             print_settings = self.print_settings,
             proxy_server = self.proxy_server,
             privacy_mode = self.privacy_mode,
-            user_agent = self.user_agent
+            user_agent = self.user_agent,
+            user_css = self.user_css
             )
         self.browser_window.setObjectName("web_content")
 
@@ -465,6 +467,7 @@ class WcgWebView(QWebView):
         self.kwargs = kwargs
         self.nam = kwargs.get('networkAccessManager') or QNetworkAccessManager()
         self.setPage(WCGWebPage())
+        self.page().user_agent = kwargs.get('user_agent', None)
         self.page().setNetworkAccessManager(self.nam)
         self.allow_popups = kwargs.get('allow_popups')
         self.default_user = kwargs.get('default_user', '')
@@ -472,6 +475,8 @@ class WcgWebView(QWebView):
         self.allow_plugins = kwargs.get("allow_plugins", False)
         self.allow_printing = kwargs.get("allow_printing", False)
         self.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, self.allow_popups)
+        if kwargs.get('user_css'):
+            self.settings().setUserStyleSheetUrl(QUrl(kwargs.get('user_css')))
         #JavascriptCanCloseWindows is in the API documentation, but apparently only exists after 4.8
         if QT_VERSION_STR >= '4.8':
             self.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, self.allow_popups)
