@@ -9,7 +9,7 @@ Released under the GNU GPL v3
 
 try:
     from PyQt5.QtGui import QIcon, QKeySequence
-    from PyQt5.QtCore import QUrl, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, QDir, QCoreApplication, qVersion, pyqtSignal
+    from PyQt5.QtCore import QUrl, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, QDir, QCoreApplication, qVersion, pyqtSignal, QSizeF
     from PyQt5.QtWebKit import QWebSettings
     from PyQt5.QtWidgets import QMainWindow, QAction, QWidget, QApplication, QSizePolicy, QToolBar, QDialog, QMenu
     from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
@@ -474,6 +474,7 @@ class WcgWebView(QWebView):
         self.default_password = kwargs.get('default_password', '')
         self.allow_plugins = kwargs.get("allow_plugins", False)
         self.allow_printing = kwargs.get("allow_printing", False)
+        self.print_settings = kwargs.get("print_settings", False)
         self.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, self.allow_popups)
         if kwargs.get('user_css'):
             self.settings().setUserStyleSheetUrl(QUrl(kwargs.get('user_css')))
@@ -530,6 +531,7 @@ class WcgWebView(QWebView):
             # for closing the window somewhere to the right.
             self.popup.setObjectName("web_content")
             self.popup.setWindowTitle("Click the 'X' to close this window! ---> ")
+            self.popup.page().windowCloseRequested.connect(self.popup.close)
             self.popup.show()
             return self.popup
         else:
@@ -689,7 +691,7 @@ class WcgWebView(QWebView):
             if not print_dialog.exec_() == QDialog.Accepted:
                 return False
 
-        self.print(printer)
+        self.print_(printer)
         return True
 
 #### END WCGWEBVIEW DEFINITION ####
