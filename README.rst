@@ -83,6 +83,7 @@ Option Name            Default Value      Explanation
 allow_external_content False              Whether or not to allow non-html content, e.g. PDF files.  If this is true, you need to specify a content handler for the MIME type or a 404 error, "Network Error", or blank page will likely be displayed to the user.
 allow_plugins          False              If true, enables the use of plugins like flash, java, etc.
 allow_popups           False              Whether or not to allow navigation that requires opening a new browser window, such as javascript "window.open()" calls or links with a target of "_blank".  If False, the navigation will be ignored.  If true, a new window will be created as expected.
+force_js_confirm       (empty)            If set to yes or no, will override any JavaScript are-you-sure-you-want-to-exit dialog boxes, will do nothing if set to null or if unset.
 allow_printing         False              Enable printing of web pages from the context menu or toolbar.
 print_settings         (empty)            Specify default printer settings, see below.
 default_password       (empty)            default password to send when pages request authentication

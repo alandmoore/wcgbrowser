@@ -193,6 +193,7 @@ class MainWindow(QMainWindow):
         self.icon_theme = options.icon_theme or configuration.get("icon_theme", None)
         self.zoomfactor = options.zoomfactor or float(configuration.get("zoom_factor") or 1.0)
         self.allow_popups = options.allow_popups or configuration.get("allow_popups", False)
+        self.force_js_confirm = self.configuration.get("force_js_confirm", None)
         self.ssl_mode = (configuration.get("ssl_mode") in ['strict', 'ignore'] and configuration.get("ssl_mode")) or 'strict'
         self.is_fullscreen = options.is_fullscreen or configuration.get("fullscreen", False)
         self.show_navigation = not options.no_navigation and configuration.get('navigation', True)
@@ -234,6 +235,7 @@ class MainWindow(QMainWindow):
         ###Start GUI configuration###
         self.browser_window = WcgWebView(
             allow_popups=self.allow_popups,
+            force_js_confirm=self.force_js_confirm,
             default_user=self.default_user,
             default_password=self.default_password,
             zoomfactor=self.zoomfactor,
@@ -469,6 +471,7 @@ class WcgWebView(QWebView):
         self.setPage(WCGWebPage())
         self.page().user_agent = kwargs.get('user_agent', None)
         self.page().setNetworkAccessManager(self.nam)
+        self.page().force_js_confirm = kwargs.get("force_js_confirm")
         self.allow_popups = kwargs.get('allow_popups')
         self.default_user = kwargs.get('default_user', '')
         self.default_password = kwargs.get('default_password', '')
@@ -711,6 +714,11 @@ class WCGWebPage(QWebPage):
         Overridden so that we can send javascript errors to debug.
         """
         debug("Javascript Error in \"%s\" line %d: %s" % (sourceid, line, message))
+
+    def javaScriptConfirm(self, frame, msg):
+        if self.force_js_confirm == True: return True
+        elif self.force_js_confirm == False: return False
+        else: return QWebPage.javaScriptConfirm(self, frame, msg)
 
     def userAgentForUrl(self, url):
         if self.user_agent: return self.user_agent
