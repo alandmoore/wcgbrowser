@@ -211,7 +211,7 @@ class MainWindow(QMainWindow):
         """Click here when you are done.\nIt will clear your browsing history and return you to the start page."""
         self.window_size = options.window_size or self.configuration.get("window_size", None)
         self.allow_printing = self.configuration.get("allow_printing", False)
-        self.print_settings = self.configuration.get("print_settings", "{}")
+        self.print_settings = self.configuration.get("print_settings", {})
         self.user_agent = self.configuration.get("user_agent", None)
         self.user_css = self.configuration.get("user_css", None)
         qb_mode_callbacks = {'close': self.close, 'reset': self.reset_browser}
