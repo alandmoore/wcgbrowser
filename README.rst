@@ -240,12 +240,12 @@ If you neglect to include a port, and just put an IP address or hostname, the po
 Print Settings
 --------------
 
-WCGBrowser supports configuring default printer settings and allows printing without showing a dialog box. Options are set with the "print_settings" variable. For example:
+WCGBrowser supports configuring default printer settings and allows printing without showing a dialog box. Options are set with the "print_settings" variable. For example::
 
-print_settings:
-    silent: True
-    margins: [5, 5, 3, 3]
-    orientation: "landscape"
+    print_settings:
+        silent: True
+        margins: [5, 5, 3, 3]
+        orientation: "landscape"
 
 The following options are supported:
 
