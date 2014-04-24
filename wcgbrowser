@@ -5,10 +5,4 @@
 # Edit it to fit your system
 
 cd /usr/local/share/wcgbrowser
-which python3 &>>/dev/null
-if [ $? -eq 0 ]
-then
-    python3 browser.py $@
-else
-    python browser.py $@
-fi
+python browser.py $@
