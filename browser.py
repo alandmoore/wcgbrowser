@@ -682,10 +682,10 @@ class WcgWebView(QWebView):
             else:
                 printer.setOrientation(QPrinter.Portrait)
 
-            if not self.print_settings.get("paper_size") == None:
+            if self.print_settings.get("paper_size"):
                 printer.setPaperSize(QSizeF(*self.print_settings.get("paper_size")), unit)
 
-            if not self.print_settings.get("resolution") == None:
+            if self.print_settings.get("resolution"):
                 printer.setResolution(int(self.print_settings.get("resolution")))
 
         if not self.print_settings.get("silent"):
