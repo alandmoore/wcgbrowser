@@ -72,10 +72,10 @@ timeout_mode: 'reset'
 
 #allow_plugins: True
 
-# "force_js_override" allows JavaScript are-you-sure-you-want-to-exit dialog boxes to be overriden with a default answer, yes or no. Setting to null or leaving unset will cause to dialog box to be shown normally
-# Default: null
+# "force_js_override" allows JavaScript are-you-sure-you-want-to-exit dialog boxes to be overriden with a default answer, "accept" or "deny". When set to "ask", the default, the user is asked each time.
+# Default: "ask"
 
-# force_js_override: yes
+# force_js_override: "accept"
 
 # "ssl_mode" decides whether problems with ssl certificates will be ignored, or if an error will be shown
 # Possible values are "ignore" and "strict"

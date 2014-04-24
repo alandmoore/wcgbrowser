@@ -193,7 +193,7 @@ class MainWindow(QMainWindow):
         self.icon_theme = options.icon_theme or configuration.get("icon_theme", None)
         self.zoomfactor = options.zoomfactor or float(configuration.get("zoom_factor") or 1.0)
         self.allow_popups = options.allow_popups or configuration.get("allow_popups", False)
-        self.force_js_confirm = self.configuration.get("force_js_confirm", None)
+        self.force_js_confirm = self.configuration.get("force_js_confirm", "ask")
         self.ssl_mode = (configuration.get("ssl_mode") in ['strict', 'ignore'] and configuration.get("ssl_mode")) or 'strict'
         self.is_fullscreen = options.is_fullscreen or configuration.get("fullscreen", False)
         self.show_navigation = not options.no_navigation and configuration.get('navigation', True)
@@ -716,8 +716,8 @@ class WCGWebPage(QWebPage):
         debug("Javascript Error in \"%s\" line %d: %s" % (sourceid, line, message))
 
     def javaScriptConfirm(self, frame, msg):
-        if self.force_js_confirm == True: return True
-        elif self.force_js_confirm == False: return False
+        if self.force_js_confirm == "accept": return True
+        elif self.force_js_confirm == "deny": return False
         else: return QWebPage.javaScriptConfirm(self, frame, msg)
 
     def userAgentForUrl(self, url):
