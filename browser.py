@@ -9,7 +9,7 @@ Released under the GNU GPL v3
 
 try:
     from PyQt5.QtGui import QIcon, QKeySequence
-    from PyQt5.QtCore import QUrl, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, QDir, QCoreApplication, qVersion, pyqtSignal
+    from PyQt5.QtCore import QUrl, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, QDir, QCoreApplication, qVersion, pyqtSignal, QSizeF
     from PyQt5.QtWebKit import QWebSettings
     from PyQt5.QtWidgets import QMainWindow, QAction, QWidget, QApplication, QSizePolicy, QToolBar, QDialog, QMenu
     from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
@@ -193,6 +193,7 @@ class MainWindow(QMainWindow):
         self.icon_theme = options.icon_theme or configuration.get("icon_theme", None)
         self.zoomfactor = options.zoomfactor or float(configuration.get("zoom_factor") or 1.0)
         self.allow_popups = options.allow_popups or configuration.get("allow_popups", False)
+        self.force_js_confirm = self.configuration.get("force_js_confirm", "ask")
         self.ssl_mode = (configuration.get("ssl_mode") in ['strict', 'ignore'] and configuration.get("ssl_mode")) or 'strict'
         self.is_fullscreen = options.is_fullscreen or configuration.get("fullscreen", False)
         self.show_navigation = not options.no_navigation and configuration.get('navigation', True)
@@ -210,6 +211,9 @@ class MainWindow(QMainWindow):
         """Click here when you are done.\nIt will clear your browsing history and return you to the start page."""
         self.window_size = options.window_size or self.configuration.get("window_size", None)
         self.allow_printing = self.configuration.get("allow_printing", False)
+        self.print_settings = self.configuration.get("print_settings", {})
+        self.user_agent = self.configuration.get("user_agent", None)
+        self.user_css = self.configuration.get("user_css", None)
         qb_mode_callbacks = {'close': self.close, 'reset': self.reset_browser}
         to_mode_callbacks = {'close': self.close, 'reset': self.reset_browser, 'screensaver': self.screensaver}
 
@@ -231,6 +235,7 @@ class MainWindow(QMainWindow):
         ###Start GUI configuration###
         self.browser_window = WcgWebView(
             allow_popups=self.allow_popups,
+            force_js_confirm=self.force_js_confirm,
             default_user=self.default_user,
             default_password=self.default_password,
             zoomfactor=self.zoomfactor,
@@ -243,8 +248,11 @@ class MainWindow(QMainWindow):
             allow_plugins = self.allow_plugins,
             whitelist = self.whitelist,
             allow_printing = self.allow_printing,
+            print_settings = self.print_settings,
             proxy_server = self.proxy_server,
-            privacy_mode = self.privacy_mode
+            privacy_mode = self.privacy_mode,
+            user_agent = self.user_agent,
+            user_css = self.user_css
             )
         self.browser_window.setObjectName("web_content")
 
@@ -461,13 +469,18 @@ class WcgWebView(QWebView):
         self.kwargs = kwargs
         self.nam = kwargs.get('networkAccessManager') or QNetworkAccessManager()
         self.setPage(WCGWebPage())
+        self.page().user_agent = kwargs.get('user_agent', None)
         self.page().setNetworkAccessManager(self.nam)
+        self.page().force_js_confirm = kwargs.get("force_js_confirm")
         self.allow_popups = kwargs.get('allow_popups')
         self.default_user = kwargs.get('default_user', '')
         self.default_password = kwargs.get('default_password', '')
         self.allow_plugins = kwargs.get("allow_plugins", False)
         self.allow_printing = kwargs.get("allow_printing", False)
+        self.print_settings = kwargs.get("print_settings", False)
         self.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, self.allow_popups)
+        if kwargs.get('user_css'):
+            self.settings().setUserStyleSheetUrl(QUrl(kwargs.get('user_css')))
         #JavascriptCanCloseWindows is in the API documentation, but apparently only exists after 4.8
         if QT_VERSION_STR >= '4.8':
             self.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, self.allow_popups)
@@ -521,6 +534,7 @@ class WcgWebView(QWebView):
             # for closing the window somewhere to the right.
             self.popup.setObjectName("web_content")
             self.popup.setWindowTitle("Click the 'X' to close this window! ---> ")
+            self.popup.page().windowCloseRequested.connect(self.popup.close)
             self.popup.show()
             return self.popup
         else:
@@ -648,13 +662,40 @@ class WcgWebView(QWebView):
         """
         Callback for the print action.  Should show a print dialog and print the webpage to the printer.
         """
-        printer = QPrinter()
-        print_dialog = QPrintDialog(printer, self)
-        print_dialog.setWindowTitle("Print Page")
-        if print_dialog.exec_() == QDialog.Accepted:
-            self.print_(printer)
-        else:
-            return False
+        printer = QPrinter(mode = QPrinter.PrinterResolution)
+        if self.print_settings:
+            if self.print_settings.get("size_unit"):
+                try:
+                    unit = getattr(QPrinter, self.print_settings.get("size_unit").capitalize())
+                except NameError:
+                    debug("Specified print size unit '" + self.print_settings.get("size_unit") + "' not found, using default")
+                    unit = QPrinter.Millimeter
+            else:
+                unit = QPrinter.Millimeter
+
+            margins = list(self.print_settings.get("margins")) or list(printer.getPageMargins(unit))
+            margins += [unit]
+            printer.setPageMargins(*margins)
+
+            if self.print_settings.get("orientation") == "landscape":
+                printer.setOrientation(QPrinter.Landscape)
+            else:
+                printer.setOrientation(QPrinter.Portrait)
+
+            if self.print_settings.get("paper_size"):
+                printer.setPaperSize(QSizeF(*self.print_settings.get("paper_size")), unit)
+
+            if self.print_settings.get("resolution"):
+                printer.setResolution(int(self.print_settings.get("resolution")))
+
+        if not self.print_settings.get("silent"):
+            print_dialog = QPrintDialog(printer, self)
+            print_dialog.setWindowTitle("Print Page")
+            if not print_dialog.exec_() == QDialog.Accepted:
+                return False
+
+        self.print_(printer)
+        return True
 
 #### END WCGWEBVIEW DEFINITION ####
 
@@ -666,12 +707,22 @@ class WCGWebPage(QWebPage):
     """
     def __init__(self, parent=None):
         super(WCGWebPage, self).__init__(parent)
+        self.user_agent = None
 
     def javaScriptConsoleMessage(self, message, line, sourceid):
         """
         Overridden so that we can send javascript errors to debug.
         """
         debug("Javascript Error in \"%s\" line %d: %s" % (sourceid, line, message))
+
+    def javaScriptConfirm(self, frame, msg):
+        if self.force_js_confirm == "accept": return True
+        elif self.force_js_confirm == "deny": return False
+        else: return QWebPage.javaScriptConfirm(self, frame, msg)
+
+    def userAgentForUrl(self, url):
+        if self.user_agent: return self.user_agent
+        else: return QWebPage.userAgentForUrl(self, url)
 
 #### END WCGWEBPAGE DEFINITION ####
 

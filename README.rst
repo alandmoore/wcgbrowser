@@ -3,6 +3,8 @@
 ============
 
 Author:  Alan D Moore (http://www.alandmoore.com, e-mail me_AT_alandmoore_DOT_com)
+Contributors:
+Isaac "hunternet93" Smith (isaac@isrv.pw)
 
 
 Description
@@ -83,15 +85,19 @@ Option Name            Default Value      Explanation
 allow_external_content False              Whether or not to allow non-html content, e.g. PDF files.  If this is true, you need to specify a content handler for the MIME type or a 404 error, "Network Error", or blank page will likely be displayed to the user.
 allow_plugins          False              If true, enables the use of plugins like flash, java, etc.
 allow_popups           False              Whether or not to allow navigation that requires opening a new browser window, such as javascript "window.open()" calls or links with a target of "_blank".  If False, the navigation will be ignored.  If true, a new window will be created as expected.
+force_js_confirm       "ask"              If set to "accept" or "deny", will override any JavaScript are-you-sure-you-want-to-exit dialog boxes with the specified answer, if set to "ask" (the default) will ask the user each time.
 allow_printing         False              Enable printing of web pages from the context menu or toolbar.
+print_settings         (empty)            Specify default printer settings, see below.
 default_password       (empty)            default password to send when pages request authentication
 default_user           (empty)            default username to send when pages request authentication
-icon_theme             (qt4 default)      Icon theme to use for navigation icons
+icon_theme             (qt5 default)      Icon theme to use for navigation icons
 navigation             True               Display the navigation bar at the top (back/forward/reload/bookmarks/quit)
 navigation_layout      (see below)        Sets the layout of the navigation bar.  See the detailed explanation below.
 network_down_html      (empty)            The full path to a file containing HTML which will be displayed when the start_url page cannot be loaded, which probably indicates some kind of network error.
 page_unavailable_html  (empty)            The full path to a file containing HTML which will be displayed when a page cannot be loaded, either because it's not accessible or blocked by security restrictions.
 privacy_mode           True               Enable or disable "private browsing mode" on the webkit widget.
+user_agent             (qt5 default)      Overrides the default user agent string.
+user_css               (empty)            Sets a default CSS file applied to all pages viewed. Option accepts any URL supported by QT, i.e: "file://etc/wcg.css" or "http://example.com/style.css".
 proxy_server           (empty)            Sets the proxy server string for HTTP proxy.  Takes the form "host:port", or just "host" if you want to use the default port of 8080.
 quit_button_mode       reset              Just like timeout_mode, only this is the action taken when the quit button is pressed (same options)
 quit_button_text       "I'm &Finished"    Text to display on the quit/reset button.  Can include an accelerator indicator (&).
@@ -233,6 +239,28 @@ To set the proxy server, use the format "host:port", as in these examples::
 
 If you neglect to include a port, and just put an IP address or hostname, the port 8080 will be used by default.
 
+Print Settings
+--------------
+
+WCGBrowser supports configuring default printer settings and allows printing without showing a dialog box. Options are set with the "print_settings" variable. For example::
+
+    print_settings:
+        silent: True
+        margins: [5, 5, 3, 3]
+        orientation: "landscape"
+
+The following options are supported:
+
+====================== ===============    ===============================================================================================================================================================================================================================================================
+Option Name            Default Value      Explanation
+====================== ===============    ===============================================================================================================================================================================================================================================================
+silent                 False              When True, WCGBrowser will print immediately without showing the printing dialog box.
+orientation            "portrait"         Specifies printing in portrait or landscape orientation.
+size_unit              "millimeter"       Specifies what unit of measure used by the paper_size and margin variables. Can be "millimeter", "point", "inch", "pica", "didot", "cicero", or "devicepixel".
+margins                (printer default)  Specifies the printer margins as a list in the form: [top, bottom, left, right]. Example: [5, 3.5, 6, 2.4]. Units are specified by the size_unit variable.
+paper_size             (printer default)  Specifies the paper size as a list in the form: [width, height]. Example: [500, 650.5]. Units are specified by the size_unit variable.
+resolution             (printer default)  Specifies the printer's resolution in ppi (pixels per inch).
+====================== ===============    ===============================================================================================================================================================================================================================================================
 
 Bugs and Limitations
 ====================
