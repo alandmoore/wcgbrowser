@@ -171,6 +171,7 @@ icon_theme:  "oxygen"
 #    paper_size: [500, 1000]
 #    margins: [5, 5, 8, 8]
 #    resolution: 300
+#    mode: "screen"
 
 # privacy_mode Configures whether or not "Private Browsing" mode is enabled on the webkit widget.
 # Default: True

@@ -662,7 +662,11 @@ class WcgWebView(QWebView):
         """
         Callback for the print action.  Should show a print dialog and print the webpage to the printer.
         """
-        printer = QPrinter(mode = QPrinter.PrinterResolution)
+        if self.print_settings.get("mode") == "high":
+            printer = QPrinter(mode = QPrinter.HighResolution)
+        else:
+            printer = QPrinter(mode = QPrinter.ScreenResolution)
+
         if self.print_settings:
             if self.print_settings.get("size_unit"):
                 try:

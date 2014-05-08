@@ -3,6 +3,7 @@
 ============
 
 Author:  Alan D Moore (http://www.alandmoore.com, e-mail me_AT_alandmoore_DOT_com)
+
 Contributors:
 Isaac "hunternet93" Smith (isaac@isrv.pw)
 
@@ -260,6 +261,7 @@ size_unit              "millimeter"       Specifies what unit of measure used by
 margins                (printer default)  Specifies the printer margins as a list in the form: [top, bottom, left, right]. Example: [5, 3.5, 6, 2.4]. Units are specified by the size_unit variable.
 paper_size             (printer default)  Specifies the paper size as a list in the form: [width, height]. Example: [500, 650.5]. Units are specified by the size_unit variable.
 resolution             (printer default)  Specifies the printer's resolution in ppi (pixels per inch).
+mode                   "screen"           Sets what resolution the printer will use, "screen": the screen's resolution (the default) or "high": the printer's maximum resolution
 ====================== ===============    ===============================================================================================================================================================================================================================================================
 
 Bugs and Limitations
