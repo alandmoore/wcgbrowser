@@ -307,7 +307,12 @@ class MainWindow(QMainWindow):
                 "zoom-out",
                 "Decrease the size of text and images on the page")
             if self.allow_printing:
-                self.nav_items["print"] = self.createAction("Print", self.browser_window.print_webpage, QKeySequence("Ctrl+p"), "document-print", "Print this page")
+                self.nav_items["print"] = self.createAction(
+                    "Print", 
+                    self.browser_window.print_webpage, 
+                    QKeySequence("Ctrl+p"), 
+                    "document-print", 
+                    "Print this page")
 
             #Add all the actions to the navigation bar.
             for item in self.navigation_layout:
@@ -321,23 +326,22 @@ class MainWindow(QMainWindow):
                 elif item == "bookmarks":
                     #Insert bookmarks buttons here.
                     self.bookmark_buttons = []
-                    if configuration.get("bookmarks"):
-                        for bookmark in configuration.get("bookmarks").items():
-                            debug("Bookmark:\n" + bookmark.__str__())
-                            #bookmark name will use the "name" attribute, if present
-                            #or else just the key:
-                            bookmark_name = bookmark[1].get("name") or bookmark[0]
-                            #Create a button for the bookmark as a QAction,
-                            #which we'll add to the toolbar
-                            button = self.createAction(
-                                bookmark_name,
-                                lambda url=bookmark[1].get("url"): self.browser_window.load(QUrl(url)),
-                                QKeySequence.mnemonic(bookmark_name),
-                                None,
-                                bookmark[1].get("description")
-                                )
-                            self.navigation_bar.addAction(button)
-                            self.navigation_bar.widgetForAction(button).setObjectName("navigation_button")
+                    for bookmark in configuration.get("bookmarks", {}).items():
+                        debug("Bookmark:\n" + bookmark.__str__())
+                        #bookmark name will use the "name" attribute, if present
+                        #or else just the key:
+                        bookmark_name = bookmark[1].get("name") or bookmark[0]
+                        #Create a button for the bookmark as a QAction,
+                        #which we'll add to the toolbar
+                        button = self.createAction(
+                            bookmark_name,
+                            lambda url=bookmark[1].get("url"): self.browser_window.load(QUrl(url)),
+                            QKeySequence.mnemonic(bookmark_name),
+                            None,
+                            bookmark[1].get("description")
+                            )
+                        self.navigation_bar.addAction(button)
+                        self.navigation_bar.widgetForAction(button).setObjectName("navigation_button")
                 else:
                     action = self.nav_items.get(item, None)
                     if action:
