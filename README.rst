@@ -3,8 +3,10 @@
 ============
 
 Author:  Alan D Moore (http://www.alandmoore.com, e-mail me_AT_alandmoore_DOT_com)
+
 Contributors:
-Isaac "hunternet93" Smith (isaac@isrv.pw)
+
+- Isaac "hunternet93" Smith (isaac@isrv.pw)
 
 
 Description
