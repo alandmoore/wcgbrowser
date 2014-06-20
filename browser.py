@@ -5,38 +5,48 @@ Written by Alan D Moore, http://www.alandmoore.com
 Released under the GNU GPL v3
 """
 
-# PyQT5 imports
+# QT Binding imports
 
-try:
-    from PyQt5.QtGui import QIcon, QKeySequence
-    from PyQt5.QtCore import QUrl, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, QDir, QCoreApplication, qVersion, pyqtSignal, QSizeF
-    from PyQt5.QtWebKit import QWebSettings
-    from PyQt5.QtWidgets import QMainWindow, QAction, QWidget, QApplication, QSizePolicy, QToolBar, QDialog, QMenu
-    from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
-    from PyQt5.QtWebKitWidgets import QWebView, QWebPage
-    from PyQt5.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
-
-except ImportError:
-    # If not PyQt5, try PyQt4
+while True: # This is a little odd, but seemed cleaner than progressively nesting try/except blocks.
     try:
+        """Try to import PyQt5"""
+        from PyQt5.QtGui import QIcon, QKeySequence
+        from PyQt5.QtCore import QUrl, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, \
+        QDir, QCoreApplication, qVersion, pyqtSignal, QSizeF
+        from PyQt5.QtWebKit import QWebSettings
+        from PyQt5.QtWidgets import QMainWindow, QAction, QWidget, QApplication, QSizePolicy, \
+        QToolBar, QDialog, QMenu
+        from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
+        from PyQt5.QtWebKitWidgets import QWebView, QWebPage
+        from PyQt5.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
+        break
+    except ImportError:
+        pass
+    try:
+        """If not PyQt5, try PyQt4"""
         from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
             QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
         from PyQt4.QtCore import QUrl, QTimer, QObject, QT_VERSION_STR, QEvent, \
             Qt, QTemporaryFile, QDir, QCoreApplication, qVersion, pyqtSignal
         from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
         from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
-
+        break
     except ImportError:
+        pass
+    try:
         """If not PyQT, try PySide"""
-        from PySide.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication,\
-             QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
-        from PySide.QtCore import QUrl, QTimer, QObject, QEvent, \
-             Qt, QTemporaryFile, QDir, QCoreApplication, qVersion, pyqtSignal
+        from PySide.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication, \
+                QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
+        from PySide.QtCore import QUrl, QTimer, QObject, QEvent, Qt, QTemporaryFile, QDir, \
+                QCoreApplication, qVersion, pyqtSignal
         from PySide.QtWebKit import QWebView, QWebPage, QWebSettings
         from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
         QT_VERSION_STR = qVersion()
-
-
+        break
+    except ImportError as e:
+        print(e.message)
+        print("You don't seem to have a QT library installed; please install PyQT or PySide.")
+        exit(1)
 
 
 # Standard library imports
@@ -88,6 +98,7 @@ DOWNLOADING_MESSAGE = """<H1>Downloading</h1>
 downloads from <strong>%s</strong>."""
 
 def debug(message):
+    """Log or print a message if the global DEBUG is true."""
     if not DEBUG and not DEBUG_LOG:
         pass
     else:
@@ -105,13 +116,19 @@ def debug(message):
                 print ("unable to write to log file %s" % DEBUG_LOG)
 
 class MainWindow(QMainWindow):
-    """
-    This class is the main application class,
+
+    """This is the main application window class
+
     it defines the GUI window for the browser
     """
+
     def createAction(self, text, slot=None, shortcut=None, icon=None, tip=None,
                      checkable=False, signal="triggered"):
-        """Borrowed from 'Rapid GUI Development with PyQT by Mark Summerset'"""
+        """Return a QAction given a number of common QAction attributes
+
+        Just a shortcut function Originally borrowed from
+        'Rapid GUI Development with PyQT' by Mark Summerset
+        """
         action = QAction(text, self)
         if icon is not None:
             action.setIcon(QIcon.fromTheme(icon, QIcon(":/%s.png" % icon)))
@@ -128,6 +145,7 @@ class MainWindow(QMainWindow):
         return action
 
     def __init__(self, options, parent=None):
+        """Construct a MainWindow Object."""
         super(MainWindow, self).__init__(parent)
         #Load config file
         self.setWindowTitle("Browser")
@@ -195,11 +213,15 @@ class MainWindow(QMainWindow):
 
         self.build_ui(self.options, self.configuration)
 
+    ### END OF CONSTRUCTOR ###
+
     def build_ui(self, options, configuration):
-        """
-        This is all the twisted logic of setting up the UI, which is re-run
+        """Set up the user interface for the main window.
+
+        Unlike the constructor, this method is re-run
         whenever the browser is "reset" by the user.
         """
+
         debug("build_ui")
         inactivity_timeout = options.timeout or int(configuration.get("timeout", 0))
         timeout_mode = configuration.get('timeout_mode', 'reset')
@@ -308,10 +330,10 @@ class MainWindow(QMainWindow):
                 "Decrease the size of text and images on the page")
             if self.allow_printing:
                 self.nav_items["print"] = self.createAction(
-                    "Print", 
-                    self.browser_window.print_webpage, 
-                    QKeySequence("Ctrl+p"), 
-                    "document-print", 
+                    "Print",
+                    self.browser_window.print_webpage,
+                    QKeySequence("Ctrl+p"),
+                    "document-print",
                     "Print this page")
 
             #Add all the actions to the navigation bar.
@@ -369,9 +391,15 @@ class MainWindow(QMainWindow):
         else:
             self.event_filter = None
 
-        ###END OF CONSTRUCTOR###
+        ###END OF UI SETUP###
 
     def screensaver(self):
+        """Enter "screensaver" mode
+
+        This method puts the browser in screensaver mode, where a URL
+        is displayed while the browser is idle.  Activity causes the browser to
+        return to the home screen.
+        """
         debug("screensaver started")
         self.screensaver_active = True
         if self.popup:
@@ -384,10 +412,10 @@ class MainWindow(QMainWindow):
         self.event_filter.activity.connect(self.reset_browser)
 
     def reset_browser(self):
-        """
-        This function clears the history and resets the UI.
-        It's called whenever the inactivity filter times out,
-        Or when the user clicks the "finished" button when in
+        """Clear the history and reset the UI.
+
+        Called whenever the inactivity filter times out,
+        or when the user clicks the "finished" button in
         'reset' mode.
         """
         # Clear out the memory cache
@@ -408,8 +436,8 @@ class MainWindow(QMainWindow):
         self.build_ui(self.options, self.configuration)
 
     def zoom_in(self):
-        """
-        This is the callback for the zoom in action.
+        """Zoom in action callback.
+
         Note that we cap zooming in at a factor of 3x.
         """
         if self.browser_window.zoomFactor() < 3.0:
@@ -419,8 +447,8 @@ class MainWindow(QMainWindow):
             self.nav_items["zoom_in"].setEnabled(False)
 
     def zoom_out(self):
-        """
-        This is the callback for the zoom out action.
+        """Zoom out action callback.
+
         Note that we cap zooming out at 0.1x.
         """
         if self.browser_window.zoomFactor() > 0.1:
@@ -434,14 +462,19 @@ class MainWindow(QMainWindow):
 ### END Main Application Window Class def ###
 
 class InactivityFilter(QTimer):
-    """
-    This class defines an inactivity filter,
-    which is basically a timer that resets every time "activity"
-    events are detected in the main application.
+    """This defines an inactivity filter.
+
+    It's basically a timer that resets when user "activity"
+    (Mouse/Keyboard events) are detected in the main application.
     """
     activity = pyqtSignal()
 
     def __init__(self, timeout=0, parent=None):
+        """Constructor for the class.
+
+        args:
+          timeout -- number of seconds before timer times out (integer)
+        """
         super(InactivityFilter, self).__init__(parent)
         # timeout needs to be converted from seconds to milliseconds
         self.timeout_time = timeout * 1000
@@ -449,6 +482,7 @@ class InactivityFilter(QTimer):
         self.start()
 
     def eventFilter(self, object, event):
+        """Overridden from QTimer.eventFilter"""
         if event.type() in (QEvent.MouseMove, QEvent.MouseButtonPress, QEvent.HoverMove, QEvent.KeyPress, QEvent.KeyRelease, ):
             self.activity.emit()
             self.start(self.timeout_time)
@@ -462,11 +496,13 @@ class InactivityFilter(QTimer):
 
 
 class WcgWebView(QWebView):
-    """
-    This is the webview for the application.
+    """This is the webview for the application.
+
+    It represents a browser window, either the main one or a popup.
     It's a simple wrapper around QWebView that configures some basic settings.
     """
     def __init__(self, parent=None, **kwargs):
+        """Constructor for the class"""
         super(WcgWebView, self).__init__(parent)
         self.kwargs = kwargs
         self.nam = kwargs.get('networkAccessManager') or QNetworkAccessManager()
@@ -509,7 +545,7 @@ class WcgWebView(QWebView):
             self.page().printRequested.connect(self.print_webpage)
             self.print_action.setToolTip("Print this web page")
 
-            #Set up the proxy if there is one set
+        #Set up the proxy if there is one set
         if self.proxy_server:
             if ":" in self.proxy_server:
                 proxyhost, proxyport = self.proxy_server.split(":")
@@ -526,9 +562,10 @@ class WcgWebView(QWebView):
         self.loadFinished.connect(self.onLoadFinished)
 
     def createWindow(self, type):
-        """
-        This function has been overridden to allow for popup windows,
-        if that feature is enabled.
+        """Handle requests for a new browser window.
+
+        Method called whenever the browser requests a new window (e.g., <a target='_blank'> or
+        window.open()).  Overridden from QWebView to allow for popup windows, if enabled.
         """
         if self.allow_popups:
             self.popup = WcgWebView(None, networkAccessManager=self.nam, **self.kwargs)
@@ -543,6 +580,10 @@ class WcgWebView(QWebView):
             debug("Popup not loaded on %s" % self.url().toString())
 
     def contextMenuEvent(self, event):
+        """Handle requests for a context menu in the browser.
+
+        Overridden from QWebView, to provide right-click functions according to user settings.
+        """
         menu = QMenu(self)
         for action in [QWebPage.Back, QWebPage.Forward, QWebPage.Reload, QWebPage.Stop]:
             action = self.pageAction(action)
@@ -553,7 +594,9 @@ class WcgWebView(QWebView):
         menu.exec_(event.globalPos())
 
     def sslErrorHandler(self, reply, errorList):
-        """
+        """Handle SSL errors in the browser.
+
+        Overridden from QWebView.
         Called whenever the browser encounters an SSL error.
         Checks the ssl_mode and responds accordingly.
         """
@@ -565,7 +608,8 @@ class WcgWebView(QWebView):
             self.setHtml(CERTIFICATE_ERROR % (reply.url().toString(), self.start_url))
 
     def auth_dialog(self, reply, authenticator):
-        """
+        """Handle requests for HTTP authentication
+
         This is called when a page requests authentication.
         It might be nice to actually have a dialog here,
         but for now we just use the default credentials from the config file.
@@ -577,9 +621,12 @@ class WcgWebView(QWebView):
             authenticator.setPassword(self.default_password)
 
     def handle_unsupported_content(self, reply):
-        """
+        """Handle requests to open non-web content
+
         Called basically when the reply from the request is not HTML
-        or something else renderable by qwebview
+        or something else renderable by qwebview.  It checks the configured
+        content-handlers for a matching MIME type, and opens the file or displays an
+        error per the configuration.
         """
         self.reply = reply
         self.content_type = self.reply.header(QNetworkRequest.ContentTypeHeader).toString()
@@ -602,7 +649,8 @@ class WcgWebView(QWebView):
             self.reply.finished.connect(self.display_downloaded_content)
 
     def display_downloaded_content(self):
-        """
+        """Open downloaded non-html content in a separate application.
+
         Called when an unsupported content type is finished downloading.
         """
         file_path = QDir.toNativeSeparators(QDir.tempPath() + "/XXXXXX_" + self.content_filename)
@@ -619,9 +667,11 @@ class WcgWebView(QWebView):
                 self.close()
 
     def onLinkClick(self, url):
-        """
+        """Handle clicked hyperlinks.
+
+        Overridden from QWebView.
         Called whenever the browser navigates to a URL;
-        handles the whitelisting logic.
+        handles the whitelisting logic and does some debug logging.
         """
         debug("Request URL: %s" % url.toString())
         if not url.isEmpty():
@@ -644,7 +694,9 @@ class WcgWebView(QWebView):
                 debug("Load URL %s" % url.toString())
 
     def onLoadFinished(self, ok):
-        """
+        """Handle loadFinished events.
+
+        Overridden from QWebView.
         This function is called when a page load finishes.
         We're checking to see if the load was successful;
         if it's not, we display either the 404 error (if
@@ -662,7 +714,8 @@ class WcgWebView(QWebView):
         return True
 
     def print_webpage(self):
-        """
+        """Print the webpage to a printer.
+
         Callback for the print action.  Should show a print dialog and print the webpage to the printer.
         """
         printer = QPrinter(mode = QPrinter.PrinterResolution)
@@ -705,25 +758,36 @@ class WcgWebView(QWebView):
 #### WCGWEBPAGE #####
 
 class WCGWebPage(QWebPage):
-    """
-    Subclassed QWebPage so that some functions can be overridden.
+    """Subclassed QWebPage representing the actual web page object in the browser.
+
+    This was subclassed so that some functions can be overridden.
     """
     def __init__(self, parent=None):
+        """Constructor for the class"""
         super(WCGWebPage, self).__init__(parent)
         self.user_agent = None
 
     def javaScriptConsoleMessage(self, message, line, sourceid):
-        """
-        Overridden so that we can send javascript errors to debug.
+        """Handle console.log messages from javascript.
+
+        Overridden from QWebPage so that we can send javascript errors to debug.
         """
         debug("Javascript Error in \"%s\" line %d: %s" % (sourceid, line, message))
 
     def javaScriptConfirm(self, frame, msg):
+        """Handle javascript confirm() dialogs.
+
+        Overridden from QWebPage so that we can (if configured) force yes/no on these dialogs.
+        """
         if self.force_js_confirm == "accept": return True
         elif self.force_js_confirm == "deny": return False
         else: return QWebPage.javaScriptConfirm(self, frame, msg)
 
     def userAgentForUrl(self, url):
+        """Handle reqests for the browser's user agent
+
+        Overridden from QWebPage so we can force a user agent from the config.
+        """
         if self.user_agent: return self.user_agent
         else: return QWebPage.userAgentForUrl(self, url)
 
