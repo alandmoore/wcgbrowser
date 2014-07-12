@@ -20,7 +20,9 @@ while True: # This is a little odd, but seemed cleaner than progressively nestin
         from PyQt5.QtWebKitWidgets import QWebView, QWebPage
         from PyQt5.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
         break
-    except ImportError:
+    except ImportError as e:
+        print ("QTt5 import error")
+        print(e.msg)
         pass
     try:
         """If not PyQt5, try PyQt4"""
@@ -208,7 +210,7 @@ class MainWindow(QMainWindow):
             bookmarks = self.configuration.get("bookmarks")
             if bookmarks:
                 self.whitelist += [str(QUrl(b.get("url")).host()) for k,b in bookmarks.items()]
-                self.whitelist = list(set(self.whitelist)) #uniquify
+                self.whitelist = set(self.whitelist) #uniquify and optimize
             debug("Generated whitelist: " + str(self.whitelist))
 
         self.build_ui(self.options, self.configuration)
