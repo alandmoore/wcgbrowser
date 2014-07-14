@@ -87,6 +87,7 @@ allow_external_content False              Whether or not to allow non-html conte
 allow_plugins          False              If true, enables the use of plugins like flash, java, etc.
 allow_popups           False              Whether or not to allow navigation that requires opening a new browser window, such as javascript "window.open()" calls or links with a target of "_blank".  If False, the navigation will be ignored.  If true, a new window will be created as expected.
 force_js_confirm       "ask"              If set to "accept" or "deny", will override any JavaScript are-you-sure-you-want-to-exit dialog boxes with the specified answer, if set to "ask" (the default) will ask the user each time.
+override_alerts        False              If True, blocks JavaScript popup alerts from appearing, or shows them when False.
 allow_printing         False              Enable printing of web pages from the context menu or toolbar.
 print_settings         (empty)            Specify default printer settings, see below.
 default_password       (empty)            default password to send when pages request authentication

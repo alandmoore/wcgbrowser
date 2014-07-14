@@ -77,6 +77,10 @@ timeout_mode: 'reset'
 
 # force_js_confirm: "accept"
 
+# "override_alerts" blocks JavaScript popup alerts from appearing when True, or shows them when False.
+# Default: False
+# override_alerts: True
+
 # "ssl_mode" decides whether problems with ssl certificates will be ignored, or if an error will be shown
 # Possible values are "ignore" and "strict"
 # Default: "strict"
