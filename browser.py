@@ -194,7 +194,7 @@ class MainWindow(QMainWindow):
         self.zoomfactor = options.zoomfactor or float(configuration.get("zoom_factor") or 1.0)
         self.allow_popups = options.allow_popups or configuration.get("allow_popups", False)
         self.force_js_confirm = self.configuration.get("force_js_confirm", "ask")
-        self.override_alerts = self.configuration.get("override_alerts", False)
+        self.suppress_alerts = self.configuration.get("suppress_alerts", False)
         self.ssl_mode = (configuration.get("ssl_mode") in ['strict', 'ignore'] and configuration.get("ssl_mode")) or 'strict'
         self.is_fullscreen = options.is_fullscreen or configuration.get("fullscreen", False)
         self.show_navigation = not options.no_navigation and configuration.get('navigation', True)
@@ -237,7 +237,7 @@ class MainWindow(QMainWindow):
         self.browser_window = WcgWebView(
             allow_popups=self.allow_popups,
             force_js_confirm=self.force_js_confirm,
-            override_alerts=self.override_alerts,
+            suppress_alerts=self.suppress_alerts,
             default_user=self.default_user,
             default_password=self.default_password,
             zoomfactor=self.zoomfactor,
