@@ -727,8 +727,8 @@ class WCGWebPage(QWebPage):
         else: return QWebPage.javaScriptConfirm(self, frame, msg)
 
     def javaScriptAlert(self, frame, msg):
-        if self.override_alerts: return
-        else: return QWebPage.javaScriptAlert(self, frame, msg)
+        if not self.suppress_alerts:
+            return QWebPage.javaScriptAlert(self, frame, msg)
 
     def userAgentForUrl(self, url):
         if self.user_agent: return self.user_agent
