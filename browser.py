@@ -722,9 +722,12 @@ class WCGWebPage(QWebPage):
         debug("Javascript Error in \"%s\" line %d: %s" % (sourceid, line, message))
 
     def javaScriptConfirm(self, frame, msg):
-        if self.force_js_confirm == "accept": return True
-        elif self.force_js_confirm == "deny": return False
-        else: return QWebPage.javaScriptConfirm(self, frame, msg)
+        if self.force_js_confirm == "accept":
+            return True
+        elif self.force_js_confirm == "deny":
+            return False
+        else:
+            return QWebPage.javaScriptConfirm(self, frame, msg)
 
     def javaScriptAlert(self, frame, msg):
         if not self.suppress_alerts:
