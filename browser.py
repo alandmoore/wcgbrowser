@@ -231,6 +231,7 @@ class MainWindow(QMainWindow):
         self.zoomfactor = options.zoomfactor or float(configuration.get("zoom_factor") or 1.0)
         self.allow_popups = options.allow_popups or configuration.get("allow_popups", False)
         self.force_js_confirm = self.configuration.get("force_js_confirm", "ask")
+        self.suppress_alerts = self.configuration.get("suppress_alerts", False)
         self.ssl_mode = (configuration.get("ssl_mode") in ['strict', 'ignore'] and configuration.get("ssl_mode")) or 'strict'
         self.is_fullscreen = options.is_fullscreen or configuration.get("fullscreen", False)
         self.show_navigation = not options.no_navigation and configuration.get('navigation', True)
@@ -258,6 +259,7 @@ class MainWindow(QMainWindow):
         self.browser_window = WcgWebView(
             allow_popups=self.allow_popups,
             force_js_confirm=self.force_js_confirm,
+            suppress_alerts=self.suppress_alerts,
             default_user=self.default_user,
             default_password=self.default_password,
             zoomfactor=self.zoomfactor,
@@ -720,7 +722,11 @@ class WcgWebView(QWebView):
 
         Callback for the print action.  Should show a print dialog and print the webpage to the printer.
         """
-        printer = QPrinter(mode = QPrinter.PrinterResolution)
+        if self.print_settings.get("mode") == "high":
+            printer = QPrinter(mode = QPrinter.HighResolution)
+        else:
+            printer = QPrinter(mode = QPrinter.ScreenResolution)
+
         if self.print_settings:
             if self.print_settings.get("size_unit"):
                 try:
@@ -781,9 +787,16 @@ class WCGWebPage(QWebPage):
 
         Overridden from QWebPage so that we can (if configured) force yes/no on these dialogs.
         """
-        if self.force_js_confirm == "accept": return True
-        elif self.force_js_confirm == "deny": return False
-        else: return QWebPage.javaScriptConfirm(self, frame, msg)
+        if self.force_js_confirm == "accept":
+            return True
+        elif self.force_js_confirm == "deny":
+            return False
+        else:
+            return QWebPage.javaScriptConfirm(self, frame, msg)
+
+    def javaScriptAlert(self, frame, msg):
+        if not self.suppress_alerts:
+            return QWebPage.javaScriptAlert(self, frame, msg)
 
     def userAgentForUrl(self, url):
         """Handle reqests for the browser's user agent
