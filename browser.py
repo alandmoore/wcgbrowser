@@ -61,16 +61,25 @@ import subprocess
 import datetime
 
 #MESSAGE STRINGS
+# You can override this string with the "page_unavailable_html" setting.
+# Just set it to a filename of the HTML you want to display.
+# It will be formatted agains the configuration file, so you can
+# include any config settings using {config_key_name}
 DEFAULT_404 = """<h2>Sorry, can't go there</h2>
 <p>This page is not available on this computer.</p>
-<p>You can return to the <a href='%s'>start page</a>,
+<p>You can return to the <a href='{start_url}'>start page</a>,
 or wait and you'll be returned to the
 <a href='javascript: history.back();'>previous page</a>.</p>
 <script>setTimeout('history.back()', 5000);</script>
 """
 
+# This text will be shown when the start_url can't be loaded
+# Usually indicates lack of network connectivity.
+# It can be overridden by giving a filename in "network_down_html"
+# and will be formatted against the config.
+
 DEFAULT_NETWORK_DOWN =  """<h2>Network Error</h2>
-<p>The start page, %s, cannot be reached.
+<p>The start page, {start_url}, cannot be reached.
 This indicates a network connectivity problem.</p>
 <p>Staff, please check the following:</p>
 <ul>
@@ -81,23 +90,31 @@ hub, or wall panel are secure</li>
 </ul>
 <p>If you continue to get this error, contact technical support</p> """
 
+# This is shown when an https site has a bad certificate and ssl_mode is set
+# to "strict".
+
 CERTIFICATE_ERROR = """<h1>Certificate Problem</h1>
 <p>The URL <strong>%s</strong> has a problem with its SSL certificate.
 For your security and protection, you will not be able to access it from this browser.</p>
 <p>If this URL is supposed to be reachable, please contact technical support for help.</p>
-<p>You can return to the <a href='%s'>start page</a>, or wait and
+<p>You can return to the <a href='{start_url}'>start page</a>, or wait and
 you'll be returned to the <a href='javascript: history.back();'>previous page</a>.</p>
 <script>setTimeout('history.back()', 5000);</script>
 """
 
+# Shown when content is requested that is not HTML, text, or something specified in the
+# content handlers.
+
 UNKNOWN_CONTENT_TYPE = """<h1>Failed: unrenderable content</h1>
 <p>The browser does not know how to handle the content type
-<strong>%s</strong> of the file <strong>%s</strong> supplied by
-<strong>%s</strong>.</p>"""
+<strong>{mime_type}</strong> of the file <strong>{file_name}</strong> supplied by
+<strong>{url}</strong>.</p>"""
+
+# This is displayed while a file is being downloaded.
 
 DOWNLOADING_MESSAGE = """<H1>Downloading</h1>
-<p>Please wait while the file <strong>%s</strong> (%s)
-downloads from <strong>%s</strong>."""
+<p>Please wait while the file <strong>{filename}</strong> ({mime_type})
+downloads from <strong>{url}</strong>."""
 
 def debug(message):
     """Log or print a message if the global DEBUG is true."""
@@ -117,6 +134,49 @@ def debug(message):
             except:
                 print ("unable to write to log file %s" % DEBUG_LOG)
 
+# Define our default configuration settings
+CONFIG_OPTIONS = {
+    "allow_external_content": {"default": False, "type": bool},
+    "allow_plugins" :         {"default": False, "type": bool},
+    "allow_popups" :          {"default": False, "type": bool},
+    "allow_printing" :        {"default": False, "type": bool},
+    "bookmarks" :             {"default": None, "type": dict},
+    "content_handlers" :      {"default": None, "type": dict},
+    "default_password" :      {"default": None, "type": str},
+    "default_user" :          {"default": None, "type": str},
+    "force_js_confirm" :      {"default": "ask", "type": str, 
+                               "values": ("ask", "accept", "deny")},
+    "fullscreen" :            {"default": False, "type": bool},
+    "icon_theme" :            {"default": None, "type": str},
+    "navigation" :            {"default": True, "type": bool},
+    "navigation_layout" :     {"default": ['back', 'forward', 'refresh', 'stop', 
+                                           'zoom_in', 'zoom_out', 'separator', 
+                                           'bookmarks', 'separator', 'spacer', 
+                                           'quit'], "type": list},
+    "network_down_html" :     {"default": DEFAULT_NETWORK_DOWN, "type": str, "is_file": True},
+    "page_unavailable_html" : {"default": DEFAULT_404, "type": str, "is_file": True},
+    "print_settings" :        {"default": None, "type": dict},
+    "privacy_mode" :          {"default": True, "type": bool},
+    "proxy_server" :          {"default": None, "type": str, "env": "http_proxy"},
+    "quit_button_mode" :      {"default": "reset", "type": str, 
+                               "values": ["reset", "close"]}, 
+    "quit_button_text" :      {"default": "I'm &Finished", "type": str},  
+    "screensaver_url" :       {"default": "about:blank", "type": str}, 
+    "ssl_mode" :              {"default": "strict", "type": str,
+                               "values":["strict", "ignore"]},
+    "start_url" :             {"default": "about:blank", "type": str},
+    "stylesheet" :            {"default": None, "type": str},   
+    "suppress_alerts" :       {"default": False, "type": bool},
+    "timeout" :               {"default": 0, "type": int},   
+    "timeout_mode" :          {"default": "reset", "type": str,
+                               "values": ["reset", "close", "screensaver"]},   
+    "user_agent" :            {"default": None, "type": str},
+    "user_css" :              {"default": None, "type": str},
+    "whitelist" :             {"default": None}, #don't check type here
+    "window_size" :           {"default": None}, #don't check type
+    "zoom_factor" :           {"default": 1.0, "type": float}
+}
+
 class MainWindow(QMainWindow):
 
     """This is the main application window class
@@ -124,6 +184,37 @@ class MainWindow(QMainWindow):
     it defines the GUI window for the browser
     """
 
+    def parse_config(self, file_config, options):
+        self.config = {}
+        options = vars(options)
+        for key, metadata in CONFIG_OPTIONS.items():
+            options_val = options.get(key)
+            file_val = file_config.get(key)
+            env_val = os.environ.get(metadata.get("env", ''))
+            default_val = metadata.get("default")
+            vals = metadata.get("values")
+            if vals:
+                options_val = (options_val in vals and options_val) or None
+                file_val = (file_val in vals and file_val) or None
+                env_val = (env_val in vals and env_val) or None
+            if metadata.get("is_file"):
+                filename = options_val or env_val
+                if not filename:
+                    self.config[key] = default_val
+                else:
+                    try:
+                        with open(filename, 'r') as fh:
+                            self.config[key] = fh.read()
+                    except IOError:
+                        debug("Could not open file {} for reading.".format(filename))
+                        self.config[key] = default_val
+            else:
+                self.config[key] = options_val or env_val or file_val or default_val
+            if metadata.get("type") and self.config[key]:
+                debug("{} cast to {}".format(key, metadata.get("type")))
+                self.config[key] = metadata.get("type")(self.config[key])
+        debug(repr(self.config))
+        
     def createAction(self, text, slot=None, shortcut=None, icon=None, tip=None,
                      checkable=False, signal="triggered"):
         """Return a QAction given a number of common QAction attributes
@@ -151,155 +242,84 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(parent)
         #Load config file
         self.setWindowTitle("Browser")
-        self.options = options
-        self.configuration = {}
         debug("loading configuration from '%s'" % options.config_file)
-        if self.options.config_file:
-            self.configuration = yaml.safe_load(open(self.options.config_file, 'r'))
-        debug(self.configuration)
-        self.default_user = options.default_user or  self.configuration.get("default_user")
-        self.default_password = options.default_password or self.configuration.get("default_password")
-        self.start_url = options.url or self.configuration.get("start_url", "about:blank")
-        self.screensaver_url = self.configuration.get("screensaver_url", "about:blank")
-        self.screensaver_active = False
-        self.whitelist = self.configuration.get("whitelist", False)
-        self.proxy_server = options.proxy_server or os.environ.get("http_proxy") or self.configuration.get("proxy_server")
+        configfile = {}
+        if options.config_file:
+            configfile = yaml.safe_load(open(options.config_file, 'r'))
+        self.parse_config(configfile, options)
+        # self.popup will hold a reference to the popup window if it gets opened
         self.popup = None
 
         # Stylesheet support
-        self.stylesheet = self.configuration.get("stylesheet")
-        if self.stylesheet:
+        if self.config.get("stylesheet"):
             try:
-                with open(self.stylesheet) as ss:
+                with open(self.config.get("stylesheet")) as ss:
                     self.setStyleSheet(ss.read())
             except:
-                debug("""Problem loading stylesheet file "%s", using default style.""" % self.stylesheet)
+                debug("""Problem loading stylesheet file "{}", """ 
+                      """using default style."""
+                      .format(self.config.get("stylesheet")))
         self.setObjectName("global")
 
-        #The following variable sets the error code when a page cannot be reached,
-        # either because of a generic 404, or because you've blocked it.
-        # You can override it using the "page_unavailable_html" setting in the configuration file.
-        self.html404 = DEFAULT_404 % (self.start_url)
-        if (self.configuration.get("page_unavailable_html")):
-            try:
-                html404 = open(self.configuration.get("page_unavailable_html"), 'r').read()
-            except:
-                html404 = None
-                debug("Couldn't read file: %s" % self.configuration.get("page_unavailable_html"))
-            self.html404 = html404 or self.html404
-
-        #This string is shown when sites that should be reachable (e.g. the start page) aren't.
-        #You might want to put in contact information for your tech support, etc.
-        # You can override it use the "network_down_html" setting in the configuration file.
-        self.html_network_down = DEFAULT_NETWORK_DOWN % (self.start_url)
-        if (self.configuration.get("network_down_html")):
-            try:
-                html_network_down = open(self.configuration.get("network_down_html"), 'r').read()
-            except:
-                html_network_down = None
-                debug("Couldn't read file: %s" % self.configuration.get("network_down_html"))
-            self.html_network_down = html_network_down or self.html_network_down
-
         #If the whitelist is activated, add the bookmarks and start_url
-        if self.whitelist:
+        if self.config.get("whitelist"):
             # we can just specify whitelist = True,
             #which should whitelist just the start_url and bookmark urls.
-            if type(self.whitelist) is not list:
+            if type(self.config.get("whitelist")) is not list:
                 self.whitelist = []
-            self.whitelist.append(str(QUrl(self.start_url).host()))
-            bookmarks = self.configuration.get("bookmarks")
+            self.whitelist.append(str(QUrl(self.config.get("start_url")).host()))
+            bookmarks = self.config.get("bookmarks")
             if bookmarks:
                 self.whitelist += [str(QUrl(b.get("url")).host()) for k,b in bookmarks.items()]
                 self.whitelist = set(self.whitelist) #uniquify and optimize
             debug("Generated whitelist: " + str(self.whitelist))
 
-        self.build_ui(self.options, self.configuration)
+        self.build_ui()
 
     ### END OF CONSTRUCTOR ###
 
-    def build_ui(self, options, configuration):
+    def build_ui(self):
         """Set up the user interface for the main window.
 
         Unlike the constructor, this method is re-run
         whenever the browser is "reset" by the user.
         """
-
+        
         debug("build_ui")
-        inactivity_timeout = options.timeout or int(configuration.get("timeout", 0))
-        timeout_mode = configuration.get('timeout_mode', 'reset')
-        self.icon_theme = options.icon_theme or configuration.get("icon_theme", None)
-        self.zoomfactor = options.zoomfactor or float(configuration.get("zoom_factor") or 1.0)
-        self.allow_popups = options.allow_popups or configuration.get("allow_popups", False)
-        self.force_js_confirm = self.configuration.get("force_js_confirm", "ask")
-        self.suppress_alerts = self.configuration.get("suppress_alerts", False)
-        self.ssl_mode = (configuration.get("ssl_mode") in ['strict', 'ignore'] and configuration.get("ssl_mode")) or 'strict'
-        self.is_fullscreen = options.is_fullscreen or configuration.get("fullscreen", False)
-        self.show_navigation = not options.no_navigation and configuration.get('navigation', True)
-        self.navigation_layout = configuration.get(
-            "navigation_layout",
-            ['back', 'forward', 'refresh', 'stop', 'zoom_in', 'zoom_out',
-             'separator', 'bookmarks', 'separator', 'spacer', 'quit'])
-        self.content_handlers = self.configuration.get("content_handlers", {})
-        self.allow_external_content = options.allow_external_content or self.configuration.get("allow_external_content", False)
-        self.allow_plugins = options.allow_plugins or self.configuration.get("allow_plugins", False)
-        self.privacy_mode = self.configuration.get("privacy_mode", True)
-        self.quit_button_mode = self.configuration.get("quit_button_mode", 'reset')
-        self.quit_button_text = self.configuration.get("quit_button_text", "I'm &Finished")
-        self.quit_button_tooltip = (self.quit_button_mode == 'close' and "Click here to quit the browser.") or \
-        """Click here when you are done.\nIt will clear your browsing history and return you to the start page."""
-        self.window_size = options.window_size or self.configuration.get("window_size", None)
-        self.allow_printing = self.configuration.get("allow_printing", False)
-        self.print_settings = self.configuration.get("print_settings", {})
-        self.user_agent = self.configuration.get("user_agent", None)
-        self.user_css = self.configuration.get("user_css", None)
+        inactivity_timeout = self.config.get("timeout")
+        quit_button_tooltip = (
+            self.config.get("quit_button_mode") == 'close'
+            and "Click here to quit the browser.") or \
+            """Click here when you are done.
+            It will clear your browsing history and return you to the start page."""
         qb_mode_callbacks = {'close': self.close, 'reset': self.reset_browser}
         to_mode_callbacks = {'close': self.close, 'reset': self.reset_browser, 'screensaver': self.screensaver}
+        self.screensaver_active = False
 
         ###Start GUI configuration###
-        self.browser_window = WcgWebView(
-            allow_popups=self.allow_popups,
-            force_js_confirm=self.force_js_confirm,
-            suppress_alerts=self.suppress_alerts,
-            default_user=self.default_user,
-            default_password=self.default_password,
-            zoomfactor=self.zoomfactor,
-            content_handlers=self.content_handlers,
-            allow_external_content=self.allow_external_content,
-            html404=self.html404,
-            html_network_down=self.html_network_down,
-            start_url=self.start_url,
-            ssl_mode=self.ssl_mode,
-            allow_plugins = self.allow_plugins,
-            whitelist = self.whitelist,
-            allow_printing = self.allow_printing,
-            print_settings = self.print_settings,
-            proxy_server = self.proxy_server,
-            privacy_mode = self.privacy_mode,
-            user_agent = self.user_agent,
-            user_css = self.user_css
-            )
+        self.browser_window = WcgWebView(self.config)
         self.browser_window.setObjectName("web_content")
 
-        if self.icon_theme is not None and QT_VERSION_STR > '4.6':
-            QIcon.setThemeName(self.icon_theme)
+        if self.config.get("icon_theme") is not None and QT_VERSION_STR > '4.6':
+            QIcon.setThemeName(self.config.get("icon_theme"))
         self.setCentralWidget(self.browser_window)
-        debug(options)
-        debug("loading %s" % self.start_url)
-        self.browser_window.setUrl(QUrl(self.start_url))
-        if self.is_fullscreen is True:
+        debug("loading {}".format(self.config.get("start_url")))
+        self.browser_window.setUrl(QUrl(self.config.get("start_url")))
+        if self.config.get("fullscreen"):
             self.showFullScreen()
-        elif self.window_size and self.window_size.lower() == 'max':
+        elif self.config.get("window_size") and \
+             self.config.get("window_size").lower() == 'max':
             self.showMaximized()
-        elif self.window_size:
-            size = re.match(r"(\d+)x(\d+)", self.window_size)
+        elif self.config.get("window_size"):
+            size = re.match(r"(\d+)x(\d+)", self.config.get("window_size"))
             if size:
                 width, height = size.groups()
                 self.setFixedSize(int(width), int(height))
             else:
-                debug("Ignoring invalid window size \"%s\"" % self.window_size)
+                debug("Ignoring invalid window size \"%s\"" % self.config.get("window_size"))
 
         #Set up the top navigation bar if it's configured to exist
-        if self.show_navigation is True:
+        if self.config.get("show_navigation"):
             self.navigation_bar = QToolBar("Navigation")
             self.navigation_bar.setObjectName("navigation")
             self.addToolBar(Qt.TopToolBarArea, self.navigation_bar)
@@ -315,10 +335,10 @@ class MainWindow(QMainWindow):
             #The "I'm finished" button.
             self.nav_items["quit"] = self.createAction(
                 self.quit_button_text,
-                qb_mode_callbacks.get(self.quit_button_mode, self.reset_browser),
+                qb_mode_callbacks.get(self.config.get("quit_button_mode"), self.reset_browser),
                 QKeySequence("Alt+F"),
                 None,
-                self.quit_button_tooltip)
+                quit_button_tooltip)
             #Zoom buttons
             self.nav_items["zoom_in"] = self.createAction(
                 "Zoom In",
@@ -332,7 +352,7 @@ class MainWindow(QMainWindow):
                 QKeySequence("Alt+-"),
                 "zoom-out",
                 "Decrease the size of text and images on the page")
-            if self.allow_printing:
+            if self.config.get("allow_printing"):
                 self.nav_items["print"] = self.createAction(
                     "Print",
                     self.browser_window.print_webpage,
@@ -347,12 +367,13 @@ class MainWindow(QMainWindow):
                 elif item == "spacer":
                     #an expanding spacer.
                     spacer = QWidget()
-                    spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+                    spacer.setSizePolicy(
+                        QSizePolicy.Expanding, QSizePolicy.Preferred)
                     self.navigation_bar.addWidget(spacer)
                 elif item == "bookmarks":
                     #Insert bookmarks buttons here.
                     self.bookmark_buttons = []
-                    for bookmark in configuration.get("bookmarks", {}).items():
+                    for bookmark in self.config.get("bookmarks", {}).items():
                         debug("Bookmark:\n" + bookmark.__str__())
                         #bookmark name will use the "name" attribute, if present
                         #or else just the key:
@@ -391,7 +412,9 @@ class MainWindow(QMainWindow):
             self.event_filter = InactivityFilter(inactivity_timeout)
             QCoreApplication.instance().installEventFilter(self.event_filter)
             self.browser_window.page().installEventFilter(self.event_filter)
-            self.event_filter.timeout.connect(to_mode_callbacks.get(timeout_mode, self.reset_browser))
+            self.event_filter.timeout.connect(
+                to_mode_callbacks.get(self.config.get("timeout_mode"), 
+                                      self.reset_browser))
         else:
             self.event_filter = None
 
@@ -410,7 +433,7 @@ class MainWindow(QMainWindow):
             self.popup.close()
         if self.show_navigation is True:
             self.navigation_bar.hide()
-        self.browser_window.setZoomFactor(self.zoomfactor)
+        self.browser_window.setZoomFactor(self.config.get("zoom_factor"))
         self.browser_window.load(QUrl(self.screensaver_url))
         self.event_filter.activity.disconnect()
         self.event_filter.activity.connect(self.reset_browser)
@@ -437,7 +460,7 @@ class MainWindow(QMainWindow):
             self.event_filter.blockSignals(False)
         if hasattr(self, "navigation_bar"):
             self.removeToolBar(self.navigation_bar)
-        self.build_ui(self.options, self.configuration)
+        self.build_ui()
 
     def zoom_in(self):
         """Zoom in action callback.
@@ -487,7 +510,8 @@ class InactivityFilter(QTimer):
 
     def eventFilter(self, object, event):
         """Overridden from QTimer.eventFilter"""
-        if event.type() in (QEvent.MouseMove, QEvent.MouseButtonPress, QEvent.HoverMove, QEvent.KeyPress, QEvent.KeyRelease, ):
+        if event.type() in (QEvent.MouseMove, QEvent.MouseButtonPress, 
+                            QEvent.HoverMove, QEvent.KeyPress, QEvent.KeyRelease):
             self.activity.emit()
             self.start(self.timeout_time)
             #commented this debug code, because it spits out way to much information.
@@ -505,44 +529,31 @@ class WcgWebView(QWebView):
     It represents a browser window, either the main one or a popup.
     It's a simple wrapper around QWebView that configures some basic settings.
     """
-    def __init__(self, parent=None, **kwargs):
+    def __init__(self, config, parent=None, **kwargs):
         """Constructor for the class"""
         super(WcgWebView, self).__init__(parent)
         self.kwargs = kwargs
-        self.nam = kwargs.get('networkAccessManager') or QNetworkAccessManager()
+        self.config = config
+        self.nam = config.get('networkAccessManager') or QNetworkAccessManager()
         self.setPage(WCGWebPage())
-        self.page().user_agent = kwargs.get('user_agent', None)
+        self.page().user_agent = config.get('user_agent', None)
         self.page().setNetworkAccessManager(self.nam)
-        self.page().force_js_confirm = kwargs.get("force_js_confirm")
-        self.allow_popups = kwargs.get('allow_popups')
-        self.default_user = kwargs.get('default_user', '')
-        self.default_password = kwargs.get('default_password', '')
-        self.allow_plugins = kwargs.get("allow_plugins", False)
-        self.allow_printing = kwargs.get("allow_printing", False)
-        self.print_settings = kwargs.get("print_settings", False)
-        self.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, self.allow_popups)
-        if kwargs.get('user_css'):
-            self.settings().setUserStyleSheetUrl(QUrl(kwargs.get('user_css')))
+        self.page().force_js_confirm = config.get("force_js_confirm")
+        self.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, 
+                                     config.get("allow_popups"))
+        if config.get('user_css'):
+            self.settings().setUserStyleSheetUrl(QUrl(config.get('user_css')))
         #JavascriptCanCloseWindows is in the API documentation, but apparently only exists after 4.8
         if QT_VERSION_STR >= '4.8':
-            self.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, self.allow_popups)
-        self.settings().setAttribute(QWebSettings.PrivateBrowsingEnabled, kwargs.get("privacy_mode", True))
+            self.settings().setAttribute(QWebSettings.JavascriptCanCloseWindows, config.get("allow_popups"))
+        self.settings().setAttribute(QWebSettings.PrivateBrowsingEnabled, config.get("privacy_mode"))
         self.settings().setAttribute(QWebSettings.LocalStorageEnabled, True)
-        self.settings().setAttribute(QWebSettings.PluginsEnabled, self.allow_plugins)
-        self.zoomfactor = kwargs.get("zoomfactor", 1)
-        self.allow_external_content = kwargs.get('allow_external_content')
-        self.page().setForwardUnsupportedContent(self.allow_external_content)
-        self.content_handlers = kwargs.get("content_handlers", {})
-        self.setZoomFactor(self.zoomfactor)
-        self.html404 = kwargs.get("html404", '')
-        self.html_network_down = kwargs.get("html_network_down", '')
-        self.start_url = kwargs.get("start_url", '')
-        self.ssl_mode = kwargs.get("ssl_mode", "strict")
-        self.whitelist = kwargs.get("whitelist", False)
-        self.proxy_server = kwargs.get("proxy_server")
+        self.settings().setAttribute(QWebSettings.PluginsEnabled, config.get("allow_plugins"))
+        self.page().setForwardUnsupportedContent(config.get("allow_external_content"))
+        self.setZoomFactor(config.get("zoom_factor"))
 
         #add printing to context menu if it's allowed
-        if self.allow_printing:
+        if config.get("allow_printing"):
             self.print_action = QAction("Print", self)
             self.print_action.setIcon(QIcon.fromTheme("document-print"))
             self.print_action.triggered.connect(self.print_webpage)
@@ -550,11 +561,11 @@ class WcgWebView(QWebView):
             self.print_action.setToolTip("Print this web page")
 
         #Set up the proxy if there is one set
-        if self.proxy_server:
-            if ":" in self.proxy_server:
-                proxyhost, proxyport = self.proxy_server.split(":")
+        if config.get("proxy_server"):
+            if ":" in config["proxy_server"]:
+                proxyhost, proxyport = config["proxy_server"].split(":")
             else:
-                proxyhost = self.proxy_server
+                proxyhost = config["proxy_server"]
                 proxyport = 8080
             self.nam.setProxy(QNetworkProxy(QNetworkProxy.HttpProxy, proxyhost, int(proxyport)))
 
@@ -571,8 +582,12 @@ class WcgWebView(QWebView):
         Method called whenever the browser requests a new window (e.g., <a target='_blank'> or
         window.open()).  Overridden from QWebView to allow for popup windows, if enabled.
         """
-        if self.allow_popups:
-            self.popup = WcgWebView(None, networkAccessManager=self.nam, **self.kwargs)
+        if self.config.get("allow_popups"):
+            self.popup = WcgWebView(
+                None, 
+                self.config, 
+                networkAccessManager=self.nam, 
+                **self.kwargs)
             # This assumes the window manager has an "X" icon
             # for closing the window somewhere to the right.
             self.popup.setObjectName("web_content")
@@ -581,7 +596,7 @@ class WcgWebView(QWebView):
             self.popup.show()
             return self.popup
         else:
-            debug("Popup not loaded on %s" % self.url().toString())
+            debug("Popup not loaded on {}".format(self.url().toString()))
 
     def contextMenuEvent(self, event):
         """Handle requests for a context menu in the browser.
@@ -593,7 +608,7 @@ class WcgWebView(QWebView):
             action = self.pageAction(action)
             if action.isEnabled():
                 menu.addAction(action)
-        if self.allow_printing:
+        if self.config.get("allow_printing"):
             menu.addAction(self.print_action)
         menu.exec_(event.globalPos())
 
@@ -604,12 +619,12 @@ class WcgWebView(QWebView):
         Called whenever the browser encounters an SSL error.
         Checks the ssl_mode and responds accordingly.
         """
-        if self.ssl_mode == 'ignore':
+        if self.config.get("ssl_mode") == 'ignore':
             reply.ignoreSslErrors()
             debug("SSL error ignored")
             debug(", ".join([str(error.errorString()) for error in errorList]))
         else:
-            self.setHtml(CERTIFICATE_ERROR % (reply.url().toString(), self.start_url))
+            self.setHtml(CERTIFICATE_ERROR % (reply.url().toString(), self.config.get("start_url")))
 
     def auth_dialog(self, reply, authenticator):
         """Handle requests for HTTP authentication
@@ -619,10 +634,12 @@ class WcgWebView(QWebView):
         but for now we just use the default credentials from the config file.
         """
         debug("Auth required on %s" % reply.url().toString())
-        if (self.default_user):
-            authenticator.setUser(self.default_user)
-        if (self.default_password):
-            authenticator.setPassword(self.default_password)
+        default_user = self.config.get("default_user")
+        default_password = self.config.get("default_password")
+        if (default_user):
+            authenticator.setUser(default_user)
+        if (default_password):
+            authenticator.setPassword(default_password)
 
     def handle_unsupported_content(self, reply):
         """Handle requests to open non-web content
@@ -638,15 +655,17 @@ class WcgWebView(QWebView):
         self.content_filename = QUrl.fromPercentEncoding((self.content_filename and self.content_filename.group(1)) or '')
         content_url = self.reply.url()
         debug("Loading url %s of type %s" % (content_url.toString(), self.content_type))
-        if not self.content_handlers.get(str(self.content_type)):
-            self.setHtml(UNKNOWN_CONTENT_TYPE % (self.content_type,
-                                           self.content_filename,
-                                           content_url.toString()))
+        if not self.config.get("content_handlers").get(str(self.content_type)):
+            self.setHtml(UNKNOWN_CONTENT_TYPE.format(
+                mime_type = self.content_type,
+                file_name = self.content_filename,
+                url = content_url.toString()))
         else:
             if str(self.url().toString()) in ('', 'about:blank'):
-                self.setHtml(DOWNLOADING_MESSAGE % (self.content_filename,
-                                                          self.content_type,
-                                                          content_url.toString()))
+                self.setHtml(DOWNLOADING_MESSAGE.format(
+                    filename=self.content_filename,
+                    mime_type=self.content_type,
+                    url=content_url.toString()))
             else:
                 # print(self.url())
                 self.load(self.url())
@@ -663,7 +682,7 @@ class WcgWebView(QWebView):
         if (myfile.open()):
             myfile.write(self.reply.readAll())
             myfile.close()
-            subprocess.Popen([self.content_handlers.get(str(self.content_type)), myfile.fileName()])
+            subprocess.Popen([self.config.get("content_handlers").get(str(self.content_type)), myfile.fileName()])
 
             #Sometimes downloading files opens an empty window.
             #So if the current window has no URL, close it.
@@ -681,17 +700,19 @@ class WcgWebView(QWebView):
         if not url.isEmpty():
             #If whitelisting is enabled, and this isn't the start_url host,
             #check the url to see if the host's domain matches.
-            if self.whitelist \
-                and not (url.host() == QUrl(self.start_url).host()) \
+            if self.config.get("whitelist") \
+                and not (url.host() == QUrl(self.config.get("start_url")).host()) \
                 and not str(url.toString()) == 'about:blank':
                 site_ok = False
-                pattern = re.compile(str("(^|.*\.)(" + "|".join([re.escape(w) for w in self.whitelist]) + ")$"))
+                pattern = re.compile(str("(^|.*\.)(" + "|".join(
+                    [re.escape(w) for w in self.config.get("whitelist")]) + ")$"))
                 debug("Whitelist pattern: %s" % pattern.pattern)
                 if re.match(pattern, url.host()):
                     site_ok = True
                 if not site_ok:
                     debug ("Site violates whitelist: %s, %s" % (url.host(), url.toString()))
-                    self.setHtml(self.html404)
+                    self.setHtml(self.config.get("page_unavailable_html")
+                                 .format(**self.config))
             if not url.isValid():
                 debug("Invalid URL %s" % url.toString())
             else:
@@ -708,19 +729,24 @@ class WcgWebView(QWebView):
         (if it's the start page that failed).
         """
         if not ok:
-            if self.url().host() == QUrl(self.start_url).host() \
-              and str(self.url().path()).rstrip("/") == str(QUrl(self.start_url).path()).rstrip("/"):
-                self.setHtml(self.html_network_down, QUrl())
+            if self.url().host() == QUrl(self.config.get("start_url")).host() \
+              and str(self.url().path()).rstrip("/") == \
+            str(QUrl(self.config.get("start_url")).path()).rstrip("/"):
+                self.setHtml(self.config.get("network_down_html")
+                             .format(**self.config), QUrl())
                 debug("Start Url doesn't seem to be available; displaying error")
             else:
                 debug("404 on URL: %s" % self.url().toString())
-                self.setHtml(self.html404, QUrl())
+                self.setHtml(
+                    self.config.get("page_unavailable_html")
+                    .format(**self.config), QUrl())
         return True
 
     def print_webpage(self):
         """Print the webpage to a printer.
 
-        Callback for the print action.  Should show a print dialog and print the webpage to the printer.
+        Callback for the print action.  
+        Should show a print dialog and print the webpage to the printer.
         """
         if self.print_settings.get("mode") == "high":
             printer = QPrinter(mode = QPrinter.HighResolution)
@@ -824,10 +850,10 @@ if __name__ == "__main__":
 
     #Parse the command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("-l", "--url", action="store", dest="url",
+    parser.add_argument("-l", "--url", action="store", dest="start_url",
                         help="Start browser at URL")
     parser.add_argument("-f", "--fullscreen", action="store_true", default=False,
-                        dest="is_fullscreen", help="Start browser FullScreen")
+                        dest="fullscreen", help="Start browser FullScreen")
     parser.add_argument("-n", "--no-navigation", action="store_true",
                         default=False, dest="no_navigation",
                         help="Start browser without Navigation controls")
@@ -862,7 +888,7 @@ if __name__ == "__main__":
                         help="Allow the browser to use plugins like Flash or Java (if installed)")
     parser.add_argument("--size", action="store", dest="window_size",
                         default=None,
-                        help="Specify the default window size in pixels (widthxheight), or 'max' to maximize")
+                        help="Specify the default window size in pixels (widthxhei), or 'max' to maximize")
     parser.add_argument("--proxy_server", action="store", dest="proxy_server", default=None,
                         help="Specify a proxy server string, in the form host:port")
 
