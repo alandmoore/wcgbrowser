@@ -1,0 +1,362 @@
+<!doctype html>
+<!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
+<!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on http://github.com/jonrohan -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen">
+  <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="javascripts/script.js"></script>
+
+  <title>Wcgbrowser</title>
+  <meta name="description" content="WCGBrowser is a browser designed specifically for kiosk use.  Based on webkit and pyqt, it&#39;s designed to make lock-down easy.">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+</head>
+
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1 class="title">Wcgbrowser</h1>
+    </header>
+    <div id="container">
+      <p class="tagline">WCGBrowser is a browser designed specifically for kiosk use.  Based on webkit and pyqt, it&#39;s designed to make lock-down easy.</p>
+      <div id="main" role="main">
+        <div class="download-bar">
+        <div class="inner">
+          <a href="https://github.com/alandmoore/wcgbrowser/tarball/master" class="download-button tar"><span>Download</span></a>
+          <a href="https://github.com/alandmoore/wcgbrowser/zipball/master" class="download-button zip"><span>Download</span></a>
+          <a href="https://github.com/alandmoore/wcgbrowser" class="code">View Wcgbrowser on GitHub</a>
+        </div>
+        <span class="blc"></span><span class="trc"></span>
+        </div>
+        <article class="markdown-body">
+          <h1></h1>
+
+<h1>
+<a name="-wcgbrowser" class="anchor" href="#-wcgbrowser"><span class="octicon octicon-link"></span></a> WCGBrowser</h1>
+
+<p>Author:  Alan D Moore (<a href="http://www.alandmoore.com">http://www.alandmoore.com</a>, e-mail me_AT_alandmoore_DOT_com)</p>
+
+<p>Contributors:</p>
+
+<ul>
+<li>Isaac "hunternet93" Smith (<a href="mailto:isaac@isrv.pw">isaac@isrv.pw</a>)</li>
+</ul><h1>
+<a name="description" class="anchor" href="#description"><span class="octicon octicon-link"></span></a>Description</h1>
+
+<p>WCGBrowser is a browser I wrote specifically for use on web kiosks.  It's based on pyqt and webkit, and is designed to make lock-down very simple and painless.</p>
+
+<p>It was originally conceived for use in library catalog terminals, when it became clear that browsers with ever-growing feature lists like Firefox and Chrome were too much work to lock down correctly and completely.  It was also designed to be easily configurable using a simple text file that can be hand-edited in a terminal over ssh across a slow WAN, so no databases, XML, or crazy binaries here.</p>
+
+<h1>
+<a name="features" class="anchor" href="#features"><span class="octicon octicon-link"></span></a>Features</h1>
+
+<ul>
+<li>Up-to-date webkit rendering</li>
+<li>Text-based, YAML configuration</li>
+<li>(Optional) Inactivity timeout</li>
+<li>Popups/open-in-new-window can be disabled</li>
+<li>Minimal, no-clutter interface simple for the general public.</li>
+<li>Configurable navigation bar with bookmarks</li>
+<li>Configurable handling of external MIME-types (PDF, etc)</li>
+<li>(Optional) Whitelisting of hosts &amp; domains</li>
+<li>'Screensaver' mode to display a specified URL when idle</li>
+<li>Printing support</li>
+<li>Customizable error screens</li>
+<li>Much, much more...</li>
+</ul><h1>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h1>
+
+<ul>
+<li>Python 2.6 or higher (should work with python 3.x)</li>
+<li>PyQT4 OR PySide, preferably for QT 4.6 or higher</li>
+<li>Python YAML library (<a href="http://pyyaml.org">http://pyyaml.org</a>)</li>
+<li>Python argparse library</li>
+</ul><p>It should work on any platform, but it's only been tested on Debian (Squeeze) and Ubuntu (Lucid Lynx or higher).  PyQT was the original development platform and the program will prefer it if it's installed, but it should "Just Work™" with PySide too (PySide is easier to setup in virtualenv).</p>
+
+<h1>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h1>
+
+<p>The included wcgbrowser.yaml file shows an actual configuration that I use at our public library system.  To use it,  copy it to /etc/wcgbrowser.yaml, ~/.wcgbrowser.yaml, or specify it with the -c (--config-file) switch.  You can make the browser.py executable, or launch it using python, like so::</p>
+
+<pre><code>python browser.py
+</code></pre>
+
+<p>At a minimum, you need to specify a "start url" using either the config file or the "-l" switch, or else the browser isn't much use.  Advanced configuration is probably best done in the configuration file, but many basic features can be enabled or disabled at the command line using these switches:</p>
+
+<p>====================    =====================================================================================================================================
+ Switch                 Description
+====================    =====================================================================================================================================
+--debug_log             Send debugging output to specified file
+--size                  Set the initial window size as "x" (e.g. "800x600") or just "max" for maximized
+--proxy_server          Set the proxy server host and port, in the form :
+-c, --config-file       Specify a configuration file to use
+-d, --debug             Provide debugging output to stdout
+-e, --allow_external    Allow the browser to open content in external programs via MIME type
+-f, --fullscreen        Makes the window fill the screen, no window decorations
+-g, --allow_plugins     Allow the use of plugins like Flash, Java, etc.
+-h, --help              Show quick help on command line syntax
+-i, --icon-theme        The icon theme to use.  You'll need to install these themes yourself
+-l, --url               The "start location" for the browser.  This is the initial URL it will load, and where it will return when reset.
+-n, --no-navigation     Turn off the navigation panel (back, forward, home, shortcuts, etc).  Make sure your actual web application is fully navigable!
+-p, --popups            Enable the creation of new windows when a link is clicked that opens in a new window, or javascript tries to open a window
+-t, --timeout           The timeout for the inactivity monitor.  After this many seconds of inactivity, reset the browser
+-u, --user          Set the default username to be sent when a site requests authentication
+-w, --password          Set the default password to be sent when a site requests authentication
+-z, --zoom              The default zoom factor for content.  0 ignores this.  1 is default, 2 would be double size, 0.5 would be half-size, etc.
+====================    =====================================================================================================================================</p>
+
+<p>Wcgbrowser also accepts the built-in qt command-line arguments, which provide some low-level overrides.  Documentation of these switches can be found at <a href="http://doc.qt.digia.com/qt/qapplication.html#QApplication">http://doc.qt.digia.com/qt/qapplication.html#QApplication</a>.</p>
+
+<h1>
+<a name="configuration-file" class="anchor" href="#configuration-file"><span class="octicon octicon-link"></span></a>Configuration File</h1>
+
+<p>The sample configuration file is fully commented, and should be pretty easy to configure if you just read through it.  In case you just want to start from scratch, here are the current configuration options available for the application.</p>
+
+<p>====================== ===============    ===============================================================================================================================================================================================================================================================
+Option Name            Default Value      Explanation
+====================== ===============    ===============================================================================================================================================================================================================================================================
+allow_external_content False              Whether or not to allow non-html content, e.g. PDF files.  If this is true, you need to specify a content handler for the MIME type or a 404 error, "Network Error", or blank page will likely be displayed to the user.
+allow_plugins          False              If true, enables the use of plugins like flash, java, etc.
+allow_popups           False              Whether or not to allow navigation that requires opening a new browser window, such as javascript "window.open()" calls or links with a target of "_blank".  If False, the navigation will be ignored.  If true, a new window will be created as expected.
+force_js_confirm       "ask"              If set to "accept" or "deny", will override any JavaScript are-you-sure-you-want-to-exit dialog boxes with the specified answer, if set to "ask" (the default) will ask the user each time.
+suppress_alerts        False              If True, blocks JavaScript popup alerts from appearing, or shows them when False.
+allow_printing         False              Enable printing of web pages from the context menu or toolbar.
+print_settings         (empty)            Specify default printer settings, see below.
+default_password       (empty)            default password to send when pages request authentication
+default_user           (empty)            default username to send when pages request authentication
+icon_theme             (qt5 default)      Icon theme to use for navigation icons
+navigation             True               Display the navigation bar at the top (back/forward/reload/bookmarks/quit)
+navigation_layout      (see below)        Sets the layout of the navigation bar.  See the detailed explanation below.
+network_down_html      (empty)            The full path to a file containing HTML which will be displayed when the start_url page cannot be loaded, which probably indicates some kind of network error.
+page_unavailable_html  (empty)            The full path to a file containing HTML which will be displayed when a page cannot be loaded, either because it's not accessible or blocked by security restrictions.
+privacy_mode           True               Enable or disable "private browsing mode" on the webkit widget.
+user_agent             (qt5 default)      Overrides the default user agent string.
+user_css               (empty)            Sets a default CSS file applied to all pages viewed. Option accepts any URL supported by QT, i.e: "file://etc/wcg.css" or "<a href="http://example.com/style.css">http://example.com/style.css</a>".
+proxy_server           (empty)            Sets the proxy server string for HTTP proxy.  Takes the form "host:port", or just "host" if you want to use the default port of 8080.
+quit_button_mode       reset              Just like timeout_mode, only this is the action taken when the quit button is pressed (same options)
+quit_button_text       "I'm &amp;Finished"    Text to display on the quit/reset button.  Can include an accelerator indicator (&amp;).
+screensaver_url        about:blank        The URL to visit when idle.  Only matters when timeout_mode is 'screensaver' and 'timeout' is nonzero.
+ssl_mode               strict             Defines how the browser handles ssl certificate errors.  "strict" will just give an error and prevent access to the problematic URL.  "ignore" will silently ignore the errors and allow access.
+start_url              about:blank        The starting URL or "home page"
+stylesheet             (empty)            Filename of a qss stylesheet to use for styling the application window.  See example file.
+timeout                0                  Number of seconds of inactivity before the browser closes or resets itself. A value of 0 disables the feature.
+timeout_mode           reset              The action performed on inactivity timeout.  Values can be "reset" (to return to the start URL and clear history), "close" (to close the program), or 'screensaver' (to display the screensaver_url while idle)
+whitelist              (empty)            A list of web domains or hosts to allow access to (see below).
+window_size            (empty)            If set, and if fullscreen is <em>not</em> set, make the window default to this size.  Can be x (e.g. 800x600) or 'max' for maximized.
+zoom_factor            1.0                The amount of zoom applied to pages.  .5 is half size, 2.0 is double size, etc.
+====================== ===============    ===============================================================================================================================================================================================================================================================</p>
+
+<h2>
+<a name="bookmarks" class="anchor" href="#bookmarks"><span class="octicon octicon-link"></span></a>Bookmarks</h2>
+
+<p>Bookmarks are created in a YAML list called "bookmarks" with this format::</p>
+
+<pre><code>bookmarks:
+  1:
+    name: "Bookmark Name"
+    url: "http://bookmark.url/"
+    description: "A short description of the bookmark, for the tooltip"
+
+  2:
+    name: "Another bookmark name":
+    url: "http://example.com/some_bookmark"
+    description: "A short description of this bookmark"
+</code></pre>
+
+<p>Bookmark names can include an ampersand to specify an accelerator key.  You can also specify bookmark entries like so::</p>
+
+<pre><code>bookmarks:
+  "Bookmark Name":
+    url: "http://bookmark.url/"
+    description: "A short description of the bookmark, for the tooltip"
+</code></pre>
+
+<p>This is more compact, but the downside is that you have no control over the order of the bookmarks (they are ordered by key, so it'll be alphabetical by name).  This mode is really for backwards compatibility, but if you have a lot of bookmarks that you want alphabetized and want to save some typing, this may be the way to go.</p>
+
+<h2>
+<a name="content-handlers" class="anchor" href="#content-handlers"><span class="octicon octicon-link"></span></a>Content Handlers</h2>
+
+<p>If you're allowing external content to be launched, the "content_handlers" array allows you to specify in which programs the external content will open by MIME type.
+The syntax looks like this::</p>
+
+<pre><code>content_handlers:
+  "application/pdf": "xpdf"
+  "application/vnd.oasis.opendocument.text":"libreoffice"
+</code></pre>
+
+<p>WCGBrowser will download the file to a temp directory and pass it as an argument to whatever command you specify in the second column.
+Be aware of this, as in some cases you might want to write a wrapper script of some sort to deal with some types of files or programs that don't properly deal with arguments.</p>
+
+<h2>
+<a name="navigation-layout" class="anchor" href="#navigation-layout"><span class="octicon octicon-link"></span></a>Navigation Layout</h2>
+
+<p>The "navigation_layout" parameter is a list of items to place on the navigation bar, if it's showing.  You can choose from the following:</p>
+
+<ul>
+<li>"back", "forward", "refresh", "stop":  the traditional browser navigation buttons.</li>
+<li>"print": a button to open the print dialog for the main page.</li>
+<li>"zoom_in", "zoom_out":  the zoom buttons</li>
+<li>"bookmarks":  your bookmark buttons</li>
+<li>"quit":  your "I'm finished" button</li>
+<li>"separator": A vertical line to separate sections</li>
+<li>"spacer": an expanding spacer to push widgets around</li>
+</ul><p>The list can be specified in any valid YAML list format, but I recommend enclosing it in square braces and separating with commas.
+"separator" and "spacer" can be used as many times as you wish, the others should only be used once each.</p>
+
+<h2>
+<a name="whitelist" class="anchor" href="#whitelist"><span class="octicon octicon-link"></span></a>Whitelist</h2>
+
+<p>The whitelist feature is added as a convenience to help lock down your kiosk when you don't have complete control over all the links on your kiosk pages and want to prevent users from going off to strange sites.  It's <em>not</em> a firewall or content filter, and may not behave exactly how you expect it to; so if you plan to use it, please read a bit about what it does and what it does not do.</p>
+
+<p>If you don't want to use the whitelist feature, just comment it out, leave the list empty, or give it a value of "False".</p>
+
+<p>What the whitelist does</p>
+
+<pre><code>
+You give the whitelist a list of *domains* or *hosts*, like this::
+
+    whitelist: ["somehost.example.com", "some-local-host", "mydomain.org"]
+
+Whenever the user clicks a link or otherwise tries to navigate to a page, the hostname is extracted from the requested URL and matched against the whitelist.  If there's a match, the page is displayed; if not, the error text.
+
+Some things are automatic:
+
+- The start_url host is automatically whitelisted
+- Bookmark hosts are automatically whitelisted
+- Subdomains are also automatically whitelisted.  Thus, if you whitelist "example.com", then "foo.example.com" will be whitelisted as well (though "foo-example.com" will not, since that's actually a different domain).
+
+If you just want to whitelist the start_url and bookmark urls and nothing else, you can just do this in the config::
+
+    whitelist: True
+
+When relying on the automatic whitelisting, it's important to understand that the complete *host* string of these URLs is whitelisted.  So for example, if your start_url is "http://example.com", "example.com" will be added to the whitelist (and thus all subdomains of example.com, such as foo.example.com, bar.example.com, etc.).  If you specify "http://www.example.com" as the start_url, though, "www.example.com" is added to the whitelist.  Thus, "foo.example.com" would *not* be whitelisted.
+
+Also note that if you whitelist a URL that just forwards you to another host, you need to specify both hosts in the whitelist.
+
+What the whitelist doesn't do
+</code></pre>
+
+<ul>
+<li>The whitelist does not block <strong>content</strong> on a whitelisted page from being displayed, regardless of where the content is hosted.  As long as the page's URL is acceptable, all the content is displayed.  So, for example, if you have your images and scripts (or ads!) on a separate content delivery network, you don't need to whitelist that server.  You only need to whitelist hosts/domains of URLs to which the user is explicitly navigating (via hyperlink, bookmark, javascript forward, etc) -- in other words, the URL that would show up in a normal browser's location bar.</li>
+<li>The whitelist cannot take an actual path or filename, nor does it check the port, protocol, username, or any other component of the URL other than the host or domain.  Sorry.</li>
+<li>If you whitelist a host, its IP will <em>not</em> be automatically whitelisted (and vice-versa); nor will a fully-qualified hostname in the whitelist automatically whitelist the hostname by itself (or vice-versa).  A url is <em>only</em> allowed when its literal hostname matches a whitelist entry.</li>
+</ul><h2>
+<a name="screensaver-mode" class="anchor" href="#screensaver-mode"><span class="octicon octicon-link"></span></a>Screensaver Mode</h2>
+
+<p>The screensaver mode is a special timeout mode that lets you display a given URL only while the browser is idle.  Consider a configuration like this::</p>
+
+<pre><code>start_url: 'http://example.com/kiosk'
+timeout: 1800
+timeout_mode: 'screensaver'
+screensaver_url: 'http://example.com/slides'
+</code></pre>
+
+<p>This configuration would do the following:</p>
+
+<ul>
+<li>The browser will start on <a href="http://example.com/kiosk">http://example.com/kiosk</a>
+</li>
+<li>After 30 minutes of no user activity (mouse/keyboard/touchscreen/etc), the navigation bar will hide and <a href="http://example.com/slides">http://example.com/slides</a> will be displayed.</li>
+<li>As soon as a user steps up and generates activity (moves a mouse, touches the screen, etc), the navigation bar (if configured) will reappear, and the browser will load <a href="http://example.com/kiosk">http://example.com/kiosk</a>.</li>
+</ul><p>The screensaver_url could be, for example, an image rotator, a page with ads, a welcome message, etc.  It doesn't really matter, but keep in mind the user can't actually interact with the screensaver page, because as soon as they touch a mouse or keyboard, the start_url will load.</p>
+
+<h2>
+<a name="proxy-server" class="anchor" href="#proxy-server"><span class="octicon octicon-link"></span></a>Proxy Server</h2>
+
+<p>WCGBrowser will allow you to set a host (name or IP) and port number for an HTTP proxy.  HTTPS, FTP, SOCKS, or authenticated proxy is not currently supported.  You can set the proxy settings one of three ways:</p>
+
+<ul>
+<li>The environment variable "http_proxy" is respected</li>
+<li>The CLI switch --proxy_server</li>
+<li>The configuration file option "proxy_server"</li>
+</ul><p>To set the proxy server, use the format "host:port", as in these examples::</p>
+
+<pre><code>proxyserver.mynetwork.local:3128
+localhost:8080
+192.168.1.1:8880
+</code></pre>
+
+<p>If you neglect to include a port, and just put an IP address or hostname, the port 8080 will be used by default.</p>
+
+<h2>
+<a name="print-settings" class="anchor" href="#print-settings"><span class="octicon octicon-link"></span></a>Print Settings</h2>
+
+<p>WCGBrowser supports configuring default printer settings and allows printing without showing a dialog box. Options are set with the "print_settings" variable. For example::</p>
+
+<pre><code>print_settings:
+    silent: True
+    margins: [5, 5, 3, 3]
+    orientation: "landscape"
+</code></pre>
+
+<p>The following options are supported:</p>
+
+<p>====================== ===============    ===============================================================================================================================================================================================================================================================
+Option Name            Default Value      Explanation
+====================== ===============    ===============================================================================================================================================================================================================================================================
+silent                 False              When True, WCGBrowser will print immediately without showing the printing dialog box.
+orientation            "portrait"         Specifies printing in portrait or landscape orientation.
+size_unit              "millimeter"       Specifies what unit of measure used by the paper_size and margin variables. Can be "millimeter", "point", "inch", "pica", "didot", "cicero", or "devicepixel".
+margins                (printer default)  Specifies the printer margins as a list in the form: [left, top, right, bottom]. Example: [5, 3.5, 6, 2.4]. Units are specified by the size_unit variable.
+paper_size             (printer default)  Specifies the paper size as a list in the form: [width, height]. Example: [500, 650.5]. Units are specified by the size_unit variable.
+resolution             (printer default)  Specifies the printer's resolution in ppi (pixels per inch).
+mode                   "screen"           Sets what resolution the printer will use, "screen": the screen's resolution (the default) or "high": the printer's maximum resolution
+====================== ===============    ===============================================================================================================================================================================================================================================================</p>
+
+<h1>
+<a name="bugs-and-limitations" class="anchor" href="#bugs-and-limitations"><span class="octicon octicon-link"></span></a>Bugs and Limitations</h1>
+
+<ul>
+<li>SSL certificate handling is limited; I'd like the ability to add self-signed certificates, but I don't know how to accomplish this yet.  Right now you get "strict" or "ignore", which is not as flexible as one might wish.</li>
+<li>There is no password dialog when a page requests authentication.  You can set a single user/password set in the config file to be sent whenever a site does request it, or provide auth credentials in the URL (in a bookmark/start_url).</li>
+<li>Mime type handling is a little rough still, and you're bound to get 404 or network errors attempting to download documents when it's disabled.</li>
+</ul><p>If you find bugs, please report them as an "issue" at the project's github page: <a href="http://github.com/alandmoore/wcgbrowser/issues">http://github.com/alandmoore/wcgbrowser/issues</a>. If your "bug" is really a feature request, see below.</p>
+
+<h1>
+<a name="contributing" class="anchor" href="#contributing"><span class="octicon octicon-link"></span></a>Contributing</h1>
+
+<p>Contributions are welcome, so long as they are consistent with the spirit and intent of the browser -- that is, they are features useful in a kiosk situation, and keep the browser simple to configure.  I would also prefer that changes to features or behavior are opt-in (require a switch to enable them), unless it just makes no sense to do it that way.</p>
+
+<h1>
+<a name="making-feature-requests" class="anchor" href="#making-feature-requests"><span class="octicon octicon-link"></span></a>Making Feature Requests</h1>
+
+<p>If there are features you'd like to see supported in this project, you have three options to see them implemented:</p>
+
+<ul>
+<li>Write the code (or have it written by someone else) and submit it to the project as a pull request.</li>
+<li>Contact me and offer to sponsor the development of the feature.  My rates are reasonable and negotiable.</li>
+<li>Keep your fingers crossed and hope that somebody else does one of the previous two things for the feature you want.</li>
+</ul><h1>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h1>
+
+<p>WCGBrowser is released under the terms of the GNU GPL v3.</p>
+        </article>
+      </div>
+    </div>
+    <footer>
+      <div class="owner">
+      <p><a href="https://github.com/alandmoore" class="avatar"><img src="https://avatars1.githubusercontent.com/u/474830?v=2&amp;s=60" width="48" height="48"></a> <a href="https://github.com/alandmoore">alandmoore</a> maintains <a href="https://github.com/alandmoore/wcgbrowser">Wcgbrowser</a></p>
+
+
+      </div>
+      <div class="creds">
+        <small>This page generated using <a href="http://pages.github.com/">GitHub Pages</a><br>theme by <a href="https://twitter.com/jonrohan/">Jon Rohan</a></small>
+      </div>
+    </footer>
+  </div>
+  <div class="current-section">
+    <a href="#top">Scroll to top</a>
+    <a href="https://github.com/alandmoore/wcgbrowser/tarball/master" class="tar">tar</a><a href="https://github.com/alandmoore/wcgbrowser/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
+    <p class="name"></p>
+  </div>
+
+  
+</body>
+</html>
