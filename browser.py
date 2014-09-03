@@ -7,22 +7,22 @@ Released under the GNU GPL v3
 
 # QT Binding imports
 
-while True: # This is a little odd, but seemed cleaner than progressively nesting try/except blocks.
+while True:  # This is a little odd, but seemed cleaner than progressively nesting try/except blocks.
     try:
         """Try to import PyQt5"""
         from PyQt5.QtGui import QIcon, QKeySequence
         from PyQt5.QtCore import QUrl, QTimer, QObject, QT_VERSION_STR, QEvent, Qt, QTemporaryFile, \
-        QDir, QCoreApplication, qVersion, pyqtSignal, QSizeF
+            QDir, QCoreApplication, qVersion, pyqtSignal, QSizeF
         from PyQt5.QtWebKit import QWebSettings
         from PyQt5.QtWidgets import QMainWindow, QAction, QWidget, QApplication, QSizePolicy, \
-        QToolBar, QDialog, QMenu
+            QToolBar, QDialog, QMenu
         from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
         from PyQt5.QtWebKitWidgets import QWebView, QWebPage
         from PyQt5.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
         break
     except ImportError as e:
         print ("QTt5 import error")
-        print(e.msg)
+        print(e.args)
         pass
     try:
         """If not PyQt5, try PyQt4"""
@@ -38,15 +38,15 @@ while True: # This is a little odd, but seemed cleaner than progressively nestin
     try:
         """If not PyQT, try PySide"""
         from PySide.QtGui import QMainWindow, QAction, QIcon, QWidget, QApplication, \
-                QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
+            QSizePolicy, QKeySequence, QToolBar, QPrinter, QPrintDialog, QDialog, QMenu
         from PySide.QtCore import QUrl, QTimer, QObject, QEvent, Qt, QTemporaryFile, QDir, \
-                QCoreApplication, qVersion, pyqtSignal
+            QCoreApplication, qVersion, pyqtSignal
         from PySide.QtWebKit import QWebView, QWebPage, QWebSettings
         from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager, QNetworkProxy
         QT_VERSION_STR = qVersion()
         break
     except ImportError as e:
-        print(e.message)
+        print(e.args)
         print("You don't seem to have a QT library installed; please install PyQT or PySide.")
         exit(1)
 
@@ -78,7 +78,7 @@ or wait and you'll be returned to the
 # It can be overridden by giving a filename in "network_down_html"
 # and will be formatted against the config.
 
-DEFAULT_NETWORK_DOWN =  """<h2>Network Error</h2>
+DEFAULT_NETWORK_DOWN = """<h2>Network Error</h2>
 <p>The start page, {start_url}, cannot be reached.
 This indicates a network connectivity problem.</p>
 <p>Staff, please check the following:</p>
@@ -116,6 +116,7 @@ DOWNLOADING_MESSAGE = """<H1>Downloading</h1>
 <p>Please wait while the file <strong>{filename}</strong> ({mime_type})
 downloads from <strong>{url}</strong>."""
 
+
 def debug(message):
     """Log or print a message if the global DEBUG is true."""
     if not DEBUG and not DEBUG_LOG:
@@ -144,38 +145,39 @@ CONFIG_OPTIONS = {
     "content_handlers" :      {"default": None, "type": dict},
     "default_password" :      {"default": None, "type": str},
     "default_user" :          {"default": None, "type": str},
-    "force_js_confirm" :      {"default": "ask", "type": str, 
+    "force_js_confirm" :      {"default": "ask", "type": str,
                                "values": ("ask", "accept", "deny")},
     "fullscreen" :            {"default": False, "type": bool},
     "icon_theme" :            {"default": None, "type": str},
     "navigation" :            {"default": True, "type": bool},
-    "navigation_layout" :     {"default": ['back', 'forward', 'refresh', 'stop', 
-                                           'zoom_in', 'zoom_out', 'separator', 
-                                           'bookmarks', 'separator', 'spacer', 
+    "navigation_layout" :     {"default": ['back', 'forward', 'refresh', 'stop',
+                                           'zoom_in', 'zoom_out', 'separator',
+                                           'bookmarks', 'separator', 'spacer',
                                            'quit'], "type": list},
     "network_down_html" :     {"default": DEFAULT_NETWORK_DOWN, "type": str, "is_file": True},
     "page_unavailable_html" : {"default": DEFAULT_404, "type": str, "is_file": True},
     "print_settings" :        {"default": None, "type": dict},
     "privacy_mode" :          {"default": True, "type": bool},
     "proxy_server" :          {"default": None, "type": str, "env": "http_proxy"},
-    "quit_button_mode" :      {"default": "reset", "type": str, 
-                               "values": ["reset", "close"]}, 
-    "quit_button_text" :      {"default": "I'm &Finished", "type": str},  
-    "screensaver_url" :       {"default": "about:blank", "type": str}, 
+    "quit_button_mode" :      {"default": "reset", "type": str,
+                               "values": ["reset", "close"]},
+    "quit_button_text" :      {"default": "I'm &Finished", "type": str},
+    "screensaver_url" :       {"default": "about:blank", "type": str},
     "ssl_mode" :              {"default": "strict", "type": str,
                                "values":["strict", "ignore"]},
     "start_url" :             {"default": "about:blank", "type": str},
-    "stylesheet" :            {"default": None, "type": str},   
+    "stylesheet" :            {"default": None, "type": str},
     "suppress_alerts" :       {"default": False, "type": bool},
-    "timeout" :               {"default": 0, "type": int},   
+    "timeout" :               {"default": 0, "type": int},
     "timeout_mode" :          {"default": "reset", "type": str,
-                               "values": ["reset", "close", "screensaver"]},   
+                               "values": ["reset", "close", "screensaver"]},
     "user_agent" :            {"default": None, "type": str},
     "user_css" :              {"default": None, "type": str},
     "whitelist" :             {"default": None}, #don't check type here
     "window_size" :           {"default": None}, #don't check type
     "zoom_factor" :           {"default": 1.0, "type": float}
 }
+
 
 class MainWindow(QMainWindow):
 
@@ -214,7 +216,7 @@ class MainWindow(QMainWindow):
                 debug("{} cast to {}".format(key, metadata.get("type")))
                 self.config[key] = metadata.get("type")(self.config[key])
         debug(repr(self.config))
-        
+
     def createAction(self, text, slot=None, shortcut=None, icon=None, tip=None,
                      checkable=False, signal="triggered"):
         """Return a QAction given a number of common QAction attributes
@@ -256,7 +258,7 @@ class MainWindow(QMainWindow):
                 with open(self.config.get("stylesheet")) as ss:
                     self.setStyleSheet(ss.read())
             except:
-                debug("""Problem loading stylesheet file "{}", """ 
+                debug("""Problem loading stylesheet file "{}", """
                       """using default style."""
                       .format(self.config.get("stylesheet")))
         self.setObjectName("global")
@@ -270,8 +272,8 @@ class MainWindow(QMainWindow):
             self.whitelist.append(str(QUrl(self.config.get("start_url")).host()))
             bookmarks = self.config.get("bookmarks")
             if bookmarks:
-                self.whitelist += [str(QUrl(b.get("url")).host()) for k,b in bookmarks.items()]
-                self.whitelist = set(self.whitelist) #uniquify and optimize
+                self.whitelist += [str(QUrl(b.get("url")).host()) for k, b in bookmarks.items()]
+                self.whitelist = set(self.whitelist)  # uniquify and optimize
             debug("Generated whitelist: " + str(self.whitelist))
 
         self.build_ui()
@@ -284,7 +286,7 @@ class MainWindow(QMainWindow):
         Unlike the constructor, this method is re-run
         whenever the browser is "reset" by the user.
         """
-        
+
         debug("build_ui")
         inactivity_timeout = self.config.get("timeout")
         quit_button_tooltip = (
@@ -307,8 +309,8 @@ class MainWindow(QMainWindow):
         self.browser_window.setUrl(QUrl(self.config.get("start_url")))
         if self.config.get("fullscreen"):
             self.showFullScreen()
-        elif self.config.get("window_size") and \
-             self.config.get("window_size").lower() == 'max':
+        elif (self.config.get("window_size") and
+                self.config.get("window_size").lower() == 'max'):
             self.showMaximized()
         elif self.config.get("window_size"):
             size = re.match(r"(\d+)x(\d+)", self.config.get("window_size"))
@@ -413,7 +415,7 @@ class MainWindow(QMainWindow):
             QCoreApplication.instance().installEventFilter(self.event_filter)
             self.browser_window.page().installEventFilter(self.event_filter)
             self.event_filter.timeout.connect(
-                to_mode_callbacks.get(self.config.get("timeout_mode"), 
+                to_mode_callbacks.get(self.config.get("timeout_mode"),
                                       self.reset_browser))
         else:
             self.event_filter = None
@@ -484,9 +486,8 @@ class MainWindow(QMainWindow):
         else:
             self.nav_items["zoom_out"].setEnabled(False)
 
-
-
 ### END Main Application Window Class def ###
+
 
 class InactivityFilter(QTimer):
     """This defines an inactivity filter.
@@ -510,7 +511,7 @@ class InactivityFilter(QTimer):
 
     def eventFilter(self, object, event):
         """Overridden from QTimer.eventFilter"""
-        if event.type() in (QEvent.MouseMove, QEvent.MouseButtonPress, 
+        if event.type() in (QEvent.MouseMove, QEvent.MouseButtonPress,
                             QEvent.HoverMove, QEvent.KeyPress, QEvent.KeyRelease):
             self.activity.emit()
             self.start(self.timeout_time)
@@ -539,7 +540,7 @@ class WcgWebView(QWebView):
         self.page().user_agent = config.get('user_agent', None)
         self.page().setNetworkAccessManager(self.nam)
         self.page().force_js_confirm = config.get("force_js_confirm")
-        self.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows, 
+        self.settings().setAttribute(QWebSettings.JavascriptCanOpenWindows,
                                      config.get("allow_popups"))
         if config.get('user_css'):
             self.settings().setUserStyleSheetUrl(QUrl(config.get('user_css')))
@@ -584,9 +585,9 @@ class WcgWebView(QWebView):
         """
         if self.config.get("allow_popups"):
             self.popup = WcgWebView(
-                None, 
-                self.config, 
-                networkAccessManager=self.nam, 
+                None,
+                self.config,
+                networkAccessManager=self.nam,
                 **self.kwargs)
             # This assumes the window manager has an "X" icon
             # for closing the window somewhere to the right.
@@ -657,9 +658,9 @@ class WcgWebView(QWebView):
         debug("Loading url %s of type %s" % (content_url.toString(), self.content_type))
         if not self.config.get("content_handlers").get(str(self.content_type)):
             self.setHtml(UNKNOWN_CONTENT_TYPE.format(
-                mime_type = self.content_type,
-                file_name = self.content_filename,
-                url = content_url.toString()))
+                mime_type=self.content_type,
+                file_name=self.content_filename,
+                url=content_url.toString()))
         else:
             if str(self.url().toString()) in ('', 'about:blank'):
                 self.setHtml(DOWNLOADING_MESSAGE.format(
@@ -700,9 +701,9 @@ class WcgWebView(QWebView):
         if not url.isEmpty():
             #If whitelisting is enabled, and this isn't the start_url host,
             #check the url to see if the host's domain matches.
-            if self.config.get("whitelist") \
-                and not (url.host() == QUrl(self.config.get("start_url")).host()) \
-                and not str(url.toString()) == 'about:blank':
+            if (self.config.get("whitelist")
+                and not (url.host() == QUrl(self.config.get("start_url")).host())
+                    and not str(url.toString()) == 'about:blank'):
                 site_ok = False
                 pattern = re.compile(str("(^|.*\.)(" + "|".join(
                     [re.escape(w) for w in self.config.get("whitelist")]) + ")$"))
@@ -710,7 +711,7 @@ class WcgWebView(QWebView):
                 if re.match(pattern, url.host()):
                     site_ok = True
                 if not site_ok:
-                    debug ("Site violates whitelist: %s, %s" % (url.host(), url.toString()))
+                    debug("Site violates whitelist: %s, %s" % (url.host(), url.toString()))
                     self.setHtml(self.config.get("page_unavailable_html")
                                  .format(**self.config))
             if not url.isValid():
@@ -729,9 +730,11 @@ class WcgWebView(QWebView):
         (if it's the start page that failed).
         """
         if not ok:
-            if self.url().host() == QUrl(self.config.get("start_url")).host() \
-              and str(self.url().path()).rstrip("/") == \
-            str(QUrl(self.config.get("start_url")).path()).rstrip("/"):
+            req_host = self.url().host()
+            start_host = QUrl(self.config.get("start_url")).host()
+            req_path = str(self.url().path()).rstrip("/")
+            start_path = str(QUrl(self.config.get("start_url")).path()).rstrip("/")
+            if (req_host == start_host and req_path == start_path):
                 self.setHtml(self.config.get("network_down_html")
                              .format(**self.config), QUrl())
                 debug("Start Url doesn't seem to be available; displaying error")
@@ -745,13 +748,13 @@ class WcgWebView(QWebView):
     def print_webpage(self):
         """Print the webpage to a printer.
 
-        Callback for the print action.  
+        Callback for the print action.
         Should show a print dialog and print the webpage to the printer.
         """
         if self.print_settings.get("mode") == "high":
-            printer = QPrinter(mode = QPrinter.HighResolution)
+            printer = QPrinter(mode=QPrinter.HighResolution)
         else:
-            printer = QPrinter(mode = QPrinter.ScreenResolution)
+            printer = QPrinter(mode=QPrinter.ScreenResolution)
 
         if self.print_settings:
             if self.print_settings.get("size_unit"):
@@ -791,6 +794,7 @@ class WcgWebView(QWebView):
 
 #### WCGWEBPAGE #####
 
+
 class WCGWebPage(QWebPage):
     """Subclassed QWebPage representing the actual web page object in the browser.
 
@@ -829,8 +833,10 @@ class WCGWebPage(QWebPage):
 
         Overridden from QWebPage so we can force a user agent from the config.
         """
-        if self.user_agent: return self.user_agent
-        else: return QWebPage.userAgentForUrl(self, url)
+        if self.user_agent:
+            return self.user_agent
+        else:
+            return QWebPage.userAgentForUrl(self, url)
 
 #### END WCGWEBPAGE DEFINITION ####
 
@@ -898,7 +904,7 @@ if __name__ == "__main__":
     DEBUG = args.DEBUG
     DEBUG_LOG = args.debug_log
     if not args.config_file:
-        debug ("No config file found or specified; using defaults.")
+        debug("No config file found or specified; using defaults.")
 
     #run the actual application
     mainwin = MainWindow(args)
