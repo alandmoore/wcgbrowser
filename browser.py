@@ -140,8 +140,8 @@ CONFIG_OPTIONS = {
     "allow_plugins" :         {"default": False, "type": bool},
     "allow_popups" :          {"default": False, "type": bool},
     "allow_printing" :        {"default": False, "type": bool},
-    "bookmarks" :             {"default": None, "type": dict},
-    "content_handlers" :      {"default": None, "type": dict},
+    "bookmarks" :             {"default": {}, "type": dict},
+    "content_handlers" :      {"default": {}, "type": dict},
     "default_password" :      {"default": None, "type": str},
     "default_user" :          {"default": None, "type": str},
     "force_js_confirm" :      {"default": "ask", "type": str, 
@@ -209,7 +209,14 @@ class MainWindow(QMainWindow):
                         debug("Could not open file {} for reading.".format(filename))
                         self.config[key] = default_val
             else:
-                self.config[key] = options_val or env_val or file_val or default_val
+                set_values = [
+                    val for val in (options_val, env_val, file_val)
+                    if val is not None
+                ]
+                if len(set_values) > 0:
+                    self.config[key] = set_values[0]
+                else:
+                    self.config[key] = default_val
             if metadata.get("type") and self.config[key]:
                 debug("{} cast to {}".format(key, metadata.get("type")))
                 self.config[key] = metadata.get("type")(self.config[key])
@@ -319,7 +326,7 @@ class MainWindow(QMainWindow):
                 debug("Ignoring invalid window size \"%s\"" % self.config.get("window_size"))
 
         #Set up the top navigation bar if it's configured to exist
-        if self.config.get("show_navigation"):
+        if self.config.get("navigation"):
             self.navigation_bar = QToolBar("Navigation")
             self.navigation_bar.setObjectName("navigation")
             self.addToolBar(Qt.TopToolBarArea, self.navigation_bar)
@@ -334,7 +341,7 @@ class MainWindow(QMainWindow):
             self.nav_items["stop"] = self.browser_window.pageAction(QWebPage.Stop)
             #The "I'm finished" button.
             self.nav_items["quit"] = self.createAction(
-                self.quit_button_text,
+                self.config.get("quit_button_text"),
                 qb_mode_callbacks.get(self.config.get("quit_button_mode"), self.reset_browser),
                 QKeySequence("Alt+F"),
                 None,
@@ -361,7 +368,7 @@ class MainWindow(QMainWindow):
                     "Print this page")
 
             #Add all the actions to the navigation bar.
-            for item in self.navigation_layout:
+            for item in self.config.get("navigation_layout"):
                 if item == "separator":
                     self.navigation_bar.addSeparator()
                 elif item == "spacer":
@@ -854,8 +861,8 @@ if __name__ == "__main__":
                         help="Start browser at URL")
     parser.add_argument("-f", "--fullscreen", action="store_true", default=False,
                         dest="fullscreen", help="Start browser FullScreen")
-    parser.add_argument("-n", "--no-navigation", action="store_true",
-                        default=False, dest="no_navigation",
+    parser.add_argument("-n", "--no-navigation", action="store_false",
+                        default=True, dest="navigation",
                         help="Start browser without Navigation controls")
     parser.add_argument("-c", "--config-file", action="store",
                         default=default_config_file, dest="config_file",
