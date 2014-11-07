@@ -22,7 +22,7 @@ while True: # This is a little odd, but seemed cleaner than progressively nestin
         break
     except ImportError as e:
         print ("QTt5 import error")
-        print(e.msg)
+        #print(e.message)
         pass
     try:
         """If not PyQt5, try PyQt4"""
@@ -46,7 +46,7 @@ while True: # This is a little odd, but seemed cleaner than progressively nestin
         QT_VERSION_STR = qVersion()
         break
     except ImportError as e:
-        print(e.message)
+        #print(e.message)
         print("You don't seem to have a QT library installed; please install PyQT or PySide.")
         exit(1)
 
