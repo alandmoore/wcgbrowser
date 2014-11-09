@@ -11,16 +11,20 @@ while True: # This is a little odd, but seemed cleaner than progressively nestin
     try:
         """Try to import PyQt5"""
         from PyQt5.QtGui import QIcon, QKeySequence
-        from PyQt5.QtCore import QUrl, QTimer, QObject, QT_VERSION_STR, QEvent,\
-            Qt, QTemporaryFile, QDir, QCoreApplication, qVersion, pyqtSignal,\
+        from PyQt5.QtCore import (
+            QUrl, QTimer, QObject, QT_VERSION_STR, QEvent,
+            Qt, QTemporaryFile, QDir, QCoreApplication, qVersion, pyqtSignal,
             QSizeF
+        )
         from PyQt5.QtWebKit import QWebSettings
-        from PyQt5.QtWidgets import QMainWindow, QAction, QWidget,\
-            QApplication, QSizePolicy, QToolBar, QDialog, QMenu
+        from PyQt5.QtWidgets import (
+            QMainWindow, QAction, QWidget, QApplication, QSizePolicy,
+            QToolBar, QDialog, QMenu
+        )
         from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
         from PyQt5.QtWebKitWidgets import QWebView, QWebPage
-        from PyQt5.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
-            QNetworkProxy
+        from PyQt5.QtNetwork import (QNetworkRequest, QNetworkAccessManager,
+                                     QNetworkProxy)
         break
     except ImportError as e:
         print("QTt5 import error")
@@ -28,27 +32,37 @@ while True: # This is a little odd, but seemed cleaner than progressively nestin
         pass
     try:
         """If not PyQt5, try PyQt4"""
-        from PyQt4.QtGui import QMainWindow, QAction, QIcon, QWidget,\
-            QApplication, QSizePolicy, QKeySequence, QToolBar, QPrinter,\
+        from PyQt4.QtGui import (
+            QMainWindow, QAction, QIcon, QWidget,
+            QApplication, QSizePolicy, QKeySequence, QToolBar, QPrinter,
             QPrintDialog, QDialog, QMenu
-        from PyQt4.QtCore import QUrl, QTimer, QObject, QT_VERSION_STR, QEvent,\
+        )
+        from PyQt4.QtCore import (
+            QUrl, QTimer, QObject, QT_VERSION_STR, QEvent,
             Qt, QTemporaryFile, QDir, QCoreApplication, qVersion, pyqtSignal
+        )
         from PyQt4.QtWebKit import QWebView, QWebPage, QWebSettings
-        from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
-            QNetworkProxy
+        from PyQt4.QtNetwork import (
+            QNetworkRequest, QNetworkAccessManager, QNetworkProxy
+        )
         break
     except ImportError:
         pass
     try:
         """If not PyQT, try PySide"""
-        from PySide.QtGui import QMainWindow, QAction, QIcon, QWidget,\
-            QApplication, QSizePolicy, QKeySequence, QToolBar, QPrinter,\
+        from PySide.QtGui import (
+            QMainWindow, QAction, QIcon, QWidget,
+            QApplication, QSizePolicy, QKeySequence, QToolBar, QPrinter,
             QPrintDialog, QDialog, QMenu
-        from PySide.QtCore import QUrl, QTimer, QObject, QEvent, Qt,\
-            QTemporaryFile, QDir, QCoreApplication, qVersion, pyqtSignal
+        )
+        from PySide.QtCore import (
+            QUrl, QTimer, QObject, QEvent, Qt, QTemporaryFile,
+            QDir, QCoreApplication, qVersion, pyqtSignal
+        )
         from PySide.QtWebKit import QWebView, QWebPage, QWebSettings
-        from PySide.QtNetwork import QNetworkRequest, QNetworkAccessManager,\
-            QNetworkProxy
+        from PySide.QtNetwork import (
+            QNetworkRequest, QNetworkAccessManager, QNetworkProxy
+        )
         QT_VERSION_STR = qVersion()
         break
     except ImportError as e:
@@ -160,10 +174,11 @@ CONFIG_OPTIONS = {
     "fullscreen":             {"default": False, "type": bool},
     "icon_theme":             {"default": None, "type": str},
     "navigation":             {"default": True, "type": bool},
-    "navigation_layout":      {"default": ['back', 'forward', 'refresh', 'stop', 
-                                           'zoom_in', 'zoom_out', 'separator', 
-                                           'bookmarks', 'separator', 'spacer', 
-                                           'quit'], "type": list},
+    "navigation_layout":      {"default":
+                               ['back', 'forward', 'refresh', 'stop',
+                                'zoom_in', 'zoom_out', 'separator',
+                                'bookmarks', 'separator', 'spacer',
+                                'quit'], "type": list},
     "network_down_html":      {"default": DEFAULT_NETWORK_DOWN,
                                "type": str, "is_file": True},
     "page_unavailable_html":  {"default": DEFAULT_404, "type": str,
@@ -639,7 +654,9 @@ class WcgWebView(QWebView):
             else:
                 proxyhost = config["proxy_server"]
                 proxyport = 8080
-            self.nam.setProxy(QNetworkProxy(QNetworkProxy.HttpProxy, proxyhost, int(proxyport)))
+            self.nam.setProxy(QNetworkProxy(
+                QNetworkProxy.HttpProxy, proxyhost, int(proxyport)
+            ))
 
         # connections for wcgwebview
         self.page().networkAccessManager().authenticationRequired.connect(
