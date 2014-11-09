@@ -280,6 +280,26 @@ Contributing
 
 Contributions are welcome, so long as they are consistent with the spirit and intent of the browser -- that is, they are features useful in a kiosk situation, and keep the browser simple to configure.  I would also prefer that changes to features or behavior are opt-in (require a switch to enable them), unless it just makes no sense to do it that way.
 
+Coding Standards
+----------------
+
+If you're contributing code, please follow these best practices:
+
+- Follow PEP8; use a linter/checker like pyflakes, pep8, or pylint and
+  make sure your code doesn't generate errors.
+  
+  - This includes the 79 character limit.  Yes, I'm like that.
+  - Use snake_case variables, not camelCase (except for PyQt stuff we can't change)
+  - Use .format() rather than the old printf-style (%) substitution
+  - Remember that code should work in Py2.7 or Py3.x
+    and with PyQt4, PyQt5, or PySide  
+- Please document per PEP257; functions & classes need a docstring.
+- Fork the project on GitHub, make your changes, and submit a pull request.
+  You will probably be asked to change or fix some things,
+  that's just how it goes.
+    
+    
+  
 Making Feature Requests
 =======================
 
