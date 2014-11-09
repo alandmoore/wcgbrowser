@@ -7,7 +7,9 @@ Released under the GNU GPL v3
 
 # QT Binding imports
 
-while True: # This is a little odd, but seemed cleaner than progressively nesting try/except blocks.
+while True:
+    # This is a little odd, but seemed cleaner than
+    # progressively nesting try/except blocks.
     try:
         """Try to import PyQt5"""
         from PyQt5.QtGui import QIcon, QKeySequence
