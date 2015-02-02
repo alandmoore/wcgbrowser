@@ -223,6 +223,9 @@ class MainWindow(QMainWindow):
             env_val = os.environ.get(metadata.get("env", ''))
             default_val = metadata.get("default")
             vals = metadata.get("values")
+            debug("key: {}, default: {}, file: {}, options: {}".format(
+                key, default_val, file_val, options_val
+            ))
             if vals:
                 options_val = (options_val in vals and options_val) or None
                 file_val = (file_val in vals and file_val) or None
@@ -1014,7 +1017,7 @@ if __name__ == "__main__":
         dest="fullscreen", help="Start browser FullScreen"
     )
     parser.add_argument(  # No Navigation
-        "-n", "--no-navigation", action="store_false", default=True,
+        "-n", "--no-navigation", action="store_false", default=argparse.SUPPRESS,
         dest="navigation", help="Start browser without Navigation controls"
     )
     parser.add_argument(  # Config file
