@@ -1013,7 +1013,7 @@ if __name__ == "__main__":
         help="Start browser at URL"
     )
     parser.add_argument(  # Full Screen
-        "-f", "--fullscreen", action="store_true", default=False,
+        "-f", "--fullscreen", action="store_true", default=argparse.SUPPRESS,
         dest="fullscreen", help="Start browser FullScreen"
     )
     parser.add_argument(  # No Navigation
@@ -1046,7 +1046,7 @@ if __name__ == "__main__":
         dest="zoomfactor", help="Set the zoom factor for web pages"
     )
     parser.add_argument(  # Allow popups
-        "-p", "--popups", action="store_true", default=False,
+        "-p", "--popups", action="store_true", default=argparse.SUPPRESS,
         dest="allow_popups", help="Allow the browser to open new windows"
     )
     parser.add_argument(  # Default HTTP user
@@ -1060,12 +1060,12 @@ if __name__ == "__main__":
         " that require authentication"
     )
     parser.add_argument(  # Allow launching of external programs
-        "-e", "--allow_external", action="store_true", default=False,
+        "-e", "--allow_external", action="store_true", default=argparse.SUPPRESS,
         dest='allow_external_content',
         help="Allow the browser to open content in external programs."
     )
     parser.add_argument(  # Allow browser plugins
-        "-g", "--allow_plugins", action="store_true", default=False,
+        "-g", "--allow_plugins", action="store_true", default=argparse.SUPPRESS,
         dest='allow_plugins',
         help="Allow the browser to use plugins like"
         " Flash or Java (if installed)"
