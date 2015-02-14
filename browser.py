@@ -496,11 +496,11 @@ class MainWindow(QMainWindow):
         self.screensaver_active = True
         if self.popup:
             self.popup.close()
-        if self.show_navigation is True:
+        if self.config.get("navigation"):
             self.navigation_bar.hide()
         self.browser_window.setZoomFactor(self.config.get("zoom_factor"))
-        self.browser_window.load(QUrl(self.screensaver_url))
-        self.event_filter.activity.disconnect()
+        self.browser_window.load(QUrl(self.config.get("screensaver_url")))
+        self.event_filter.timeout.disconnect()
         self.event_filter.activity.connect(self.reset_browser)
 
     def reset_browser(self):
@@ -520,7 +520,7 @@ class MainWindow(QMainWindow):
             self.event_filter.blockSignals(True)
         if self.screensaver_active is True:
             self.screensaver_active = False
-            self.event_filter.activity.disconnct()
+            self.event_filter.activity.disconnect()
         if self.event_filter:
             self.event_filter.blockSignals(False)
         if hasattr(self, "navigation_bar"):
@@ -1033,7 +1033,8 @@ if __name__ == "__main__":
         help="Enable debug output to the specified filename"
     )
     parser.add_argument(  # Timeout
-        "-t", "--timeout", action="store", type=int, default=0, dest="timeout",
+        "-t", "--timeout", action="store", type=int, default=argparse.SUPPRESS,
+        dest="timeout",
         help="Define the timeout in seconds after which to reset the browser"
         "due to user inactivity"
     )
@@ -1042,7 +1043,7 @@ if __name__ == "__main__":
         help="override default icon theme with other Qt/KDE icon theme"
     )
     parser.add_argument(  # Default zoom factor
-        "-z", "--zoom", action="store", type=float, default=0,
+        "-z", "--zoom", action="store", type=float, default=argparse.SUPPRESS,
         dest="zoomfactor", help="Set the zoom factor for web pages"
     )
     parser.add_argument(  # Allow popups
