@@ -169,6 +169,7 @@ CONFIG_OPTIONS = {
     "content_handlers":       {"default": {}, "type": dict},
     "default_password":       {"default": None, "type": str},
     "default_user":           {"default": None, "type": str},
+    "enable_diagnostic":      {"default": False, "type": bool},
     "force_js_confirm":       {"default": "ask", "type": str,
                                "values": ("ask", "accept", "deny")},
     "fullscreen":             {"default": False, "type": bool},
@@ -325,6 +326,16 @@ class MainWindow(QMainWindow):
                 ]
                 self.whitelist = set(self.whitelist)  # uniquify and optimize
             debug("Generated whitelist: " + str(self.whitelist))
+
+        # If diagnostic is enabled, connect CTRL+ALT+? to show some diagnistic info
+        if (self.config.get("enable_diagnostic")):
+            self.diagnostic_action = self.createAction(
+                "Show Diagnostic",
+                self.show_diagnostic,
+                QKeySequence("Ctrl+Alt+/"),
+                tip=''
+            )
+            self.addAction(self.diagnostic_action)
 
         self.build_ui()
 
@@ -552,6 +563,33 @@ class MainWindow(QMainWindow):
             self.nav_items["zoom_in"].setEnabled(True)
         else:
             self.nav_items["zoom_out"].setEnabled(False)
+
+    def show_diagnostic(self):
+        "Display a dialog box with some diagnostic info"
+        data = {
+            "OS": os.uname(),
+            "USER": (os.environ.get("USER")
+                     or os.environ.get("USERNAME")),
+            "Python": sys.version,
+            "Qt": QT_VERSION_STR,
+            "Script Date": (
+                datetime.datetime.fromtimestamp(
+                    os.stat(__file__).st_mtime).isoformat()
+            )
+        }
+        html = "\n".join([
+            "<h1>System Information</h1>",
+            "<h2>Please click &quot;",
+            self.config.get("quit_button_text").replace("&", ''),
+            "&quot; when you are finished.</h2>",
+            "<ul>",
+            "\n".join([
+                "<li><b>{}</b>: {}</li>".format(k, v)
+                for k, v in data.items()
+            ]),
+            "</ul>"
+        ])
+        self.browser_window.setHtml(html)
 
 
 # ## END Main Application Window Class def ## #

@@ -93,6 +93,7 @@ allow_printing         False              Enable printing of web pages from the 
 print_settings         (empty)            Specify default printer settings, see below.
 default_password       (empty)            default password to send when pages request authentication
 default_user           (empty)            default username to send when pages request authentication
+enable_diagnostic      False              Enable the display of diagnostic information when Ctrl-Alt-? is hit.
 icon_theme             (qt5 default)      Icon theme to use for navigation icons
 navigation             True               Display the navigation bar at the top (back/forward/reload/bookmarks/quit)
 navigation_layout      (see below)        Sets the layout of the navigation bar.  See the detailed explanation below.
@@ -287,19 +288,19 @@ If you're contributing code, please follow these best practices:
 
 - Follow PEP8; use a linter/checker like pyflakes, pep8, or pylint and
   make sure your code doesn't generate errors.
-  
+
   - This includes the 79 character limit.  Yes, I'm like that.
   - Use snake_case variables, not camelCase (except for PyQt stuff we can't change)
   - Use .format() rather than the old printf-style (%) substitution
   - Remember that code should work in Py2.7 or Py3.x
-    and with PyQt4, PyQt5, or PySide  
+    and with PyQt4, PyQt5, or PySide
 - Please document per PEP257; functions & classes need a docstring.
 - Fork the project on GitHub, make your changes, and submit a pull request.
   You will probably be asked to change or fix some things,
   that's just how it goes.
-    
-    
-  
+
+
+
 Making Feature Requests
 =======================
 
