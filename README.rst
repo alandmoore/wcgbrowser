@@ -12,14 +12,15 @@ Contributors:
 Description
 ===========
 
-WCGBrowser is a browser I wrote specifically for use on web kiosks.  It's based on pyqt and webkit, and is designed to make lock-down very simple and painless.
+WCGBrowser is a web browser written specifically for use on kiosks, digital signage, and other locked-down situations.
+It's based on pyqt and webkit, and is designed to make lock-down very simple and painless.
 
 It was originally conceived for use in library catalog terminals, when it became clear that browsers with ever-growing feature lists like Firefox and Chrome were too much work to lock down correctly and completely.  It was also designed to be easily configurable using a simple text file that can be hand-edited in a terminal over ssh across a slow WAN, so no databases, XML, or crazy binaries here.
 
 Features
 ========
 
-- Up-to-date webkit rendering
+- Webkit rendering
 - Text-based, YAML configuration
 - (Optional) Inactivity timeout
 - Popups/open-in-new-window can be disabled
@@ -254,9 +255,9 @@ WCGBrowser supports configuring default printer settings and allows printing wit
 
 The following options are supported:
 
-====================== ===============    ===============================================================================================================================================================================================================================================================
+====================== =================  ===============================================================================================================================================================================================================================================================
 Option Name            Default Value      Explanation
-====================== ===============    ===============================================================================================================================================================================================================================================================
+====================== =================  ===============================================================================================================================================================================================================================================================
 silent                 False              When True, WCGBrowser will print immediately without showing the printing dialog box.
 orientation            "portrait"         Specifies printing in portrait or landscape orientation.
 size_unit              "millimeter"       Specifies what unit of measure used by the paper_size and margin variables. Can be "millimeter", "point", "inch", "pica", "didot", "cicero", or "devicepixel".
@@ -264,7 +265,7 @@ margins                (printer default)  Specifies the printer margins as a lis
 paper_size             (printer default)  Specifies the paper size as a list in the form: [width, height]. Example: [500, 650.5]. Units are specified by the size_unit variable.
 resolution             (printer default)  Specifies the printer's resolution in ppi (pixels per inch).
 mode                   "screen"           Sets what resolution the printer will use, "screen": the screen's resolution (the default) or "high": the printer's maximum resolution
-====================== ===============    ===============================================================================================================================================================================================================================================================
+====================== =================  ===============================================================================================================================================================================================================================================================
 
 Bugs and Limitations
 ====================
