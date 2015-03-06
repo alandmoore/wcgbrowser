@@ -72,6 +72,13 @@ timeout_mode: 'reset'
 
 #allow_plugins: True
 
+# "enable_diagnostic"
+# This setting enables the keystrokes Ctrl-Alt-/ to show some diagnostic information.  You might want to enable this if you have a situation
+# where you need to give a user the ability to get some simple information about the OS, Python Version, User, etc.  Very simple info is displayed.
+# Default: False
+
+#enable_diagnostic: True
+
 # "force_js_confirm" allows JavaScript are-you-sure-you-want-to-exit dialog boxes to be overriden with a default answer, "accept" or "deny". When set to "ask", the default, the user is asked each time.
 # Default: "ask"
 
