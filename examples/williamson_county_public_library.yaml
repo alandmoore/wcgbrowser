@@ -5,7 +5,7 @@
 # This is the "home page" for your kiosk.  It will start here, and return here if reset
 # Default: about:blank
 
-start_url: "http://www.alandmoore.com/wcgbrowser/wcgbrowser.html"
+start_url: "http://library.williamson-tn.org"
 
 # The "whitelist" is a list of domains or hosts which will be matched against any requested url.
 # If the hostname or domain name doesn't match an item on the list, the user gets the "Cannot go there" message
@@ -53,7 +53,7 @@ timeout_mode: 'reset'
 # "screensaver_url" defines the URL the browser should go to in screensaver mode
 # default is "about:blank"
 
-#screensaver_url: 'http://example.com/my-screensaver.html'
+#screensaver_url: 'http://lib.williamson-tn.org'
 
 
 # "zoom factor" determines the ratio for text/image scaling (like hitting ctrl-+ or ctrl-- on most browsers).
@@ -223,19 +223,23 @@ icon_theme:  "oxygen"
 
 bookmarks:
   1:
-    name: "WCGBrowser Website"
-    url: "http://www.alandmoore.com/wcgbrowser/wcgbrowser.html"
-    description: "WCGBrowser main website."
-    
-  2:
-    name: "WCGBrowser &Github"
-    url: "http://github.com/alandmoore/wcgbrowser"
-    description:  "WCGBrowser source code on GitHub"
+    name: "Catalog &Home"
+    url: "http://library.williamson-tn.org"
+    description:  "Williamson County Public Library INNOPAC search"
 
+  2:
+    name: "&KidsOnline Catalog"
+    url: "http://library.williamson-tn.org:90"
+    description:  "KidsOnline catalog"
   3:
-    name: "Thought Bucket"
-    url: "http://www.alandmoore.com/blog"
-    description:  "Blog of Alan D Moore (primary author/maintainer of WCGBrowser)."
+    name: "Computer &Guest"
+    url:  "https://library.williamson-tn.org/selfreg/webcomp"
+    description:  "Computer Guest Pass Application"
+
+  4:
+    name: "Commission Forum"
+    url: "http://www.williamson-tn.org/commission"
+    description:  "County Commission Public Forum"
 
 
 # External Content

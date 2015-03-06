@@ -47,10 +47,12 @@ It should work on any platform, but it's only been tested on Debian (Squeeze) an
 Usage
 =====
 
-The included wcgbrowser.yaml file shows an actual configuration that I use at our public library system.  To use it,  copy it to /etc/wcgbrowser.yaml, ~/.wcgbrowser.yaml, or specify it with the -c (--config-file) switch.  You can make the browser.py executable, or launch it using python, like so::
+The included wcgbrowser.yaml is a fully-commented example configuration.  In the examples folder are several test configurations, including an actual configuration that I use at our public library system.  To use any of the example configs, copy it to /etc/wcgbrowser.yaml, ~/.wcgbrowser.yaml, or specify it with the -c (--config-file) switch.  You can make the browser.py executable, or launch it using python, like so::
 
     python browser.py
 
+The included wcgbrowser script assumes installation to /usr/local/share/wcgbrowser.  If that's where you installed wcgbrowser, copy that file to your $PATH and just type "wcgbrowser".
+    
 At a minimum, you need to specify a "start url" using either the config file or the "-l" switch, or else the browser isn't much use.  Advanced configuration is probably best done in the configuration file, but many basic features can be enabled or disabled at the command line using these switches:
 
 ====================    =====================================================================================================================================
