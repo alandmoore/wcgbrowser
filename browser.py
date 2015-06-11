@@ -717,7 +717,6 @@ class WcgWebView(QWebView):
         """
         if self.config.get("allow_popups"):
             self.popup = WcgWebView(
-                None,
                 self.config,
                 networkAccessManager=self.nam,
                 **self.kwargs
