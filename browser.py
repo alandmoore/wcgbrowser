@@ -649,10 +649,8 @@ class WcgWebView(QWebView):
         self.config = config
         self.nam = (config.get('networkAccessManager')
                     or QNetworkAccessManager())
-        self.setPage(WCGWebPage())
-        self.page().user_agent = config.get('user_agent', None)
+        self.setPage(WCGWebPage(config=config))
         self.page().setNetworkAccessManager(self.nam)
-        self.page().force_js_confirm = config.get("force_js_confirm")
         self.settings().setAttribute(
             QWebSettings.JavascriptCanOpenWindows,
             config.get("allow_popups")
@@ -987,10 +985,10 @@ class WCGWebPage(QWebPage):
 
     This was subclassed so that some functions can be overridden.
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, config=None):
         """Constructor for the class"""
         super(WCGWebPage, self).__init__(parent)
-        self.user_agent = None
+        self.config = config or {}
 
     def javaScriptConsoleMessage(self, message, line, sourceid):
         """Handle console.log messages from javascript.
@@ -1008,15 +1006,15 @@ class WCGWebPage(QWebPage):
         Overridden from QWebPage so that we can (if configured)
         force yes/no on these dialogs.
         """
-        if self.force_js_confirm == "accept":
+        if self.config.get("force_js_confirm") == "accept":
             return True
-        elif self.force_js_confirm == "deny":
+        elif self.config.get("force_js_confirm") == "deny":
             return False
         else:
             return QWebPage.javaScriptConfirm(self, frame, msg)
 
     def javaScriptAlert(self, frame, msg):
-        if not self.suppress_alerts:
+        if not self.config.get("suppress_alerts"):
             return QWebPage.javaScriptAlert(self, frame, msg)
 
     def userAgentForUrl(self, url):
@@ -1024,7 +1022,10 @@ class WCGWebPage(QWebPage):
 
         Overridden from QWebPage so we can force a user agent from the config.
         """
-        return self.user_agent or QWebPage.userAgentForUrl(self, url)
+        return (
+            self.config.get("user_agent")
+            or QWebPage.userAgentForUrl(self, url)
+        )
 
 
 # ### END WCGWEBPAGE DEFINITION ### #
