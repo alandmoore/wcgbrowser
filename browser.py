@@ -647,7 +647,7 @@ class WcgWebView(QWebView):
         super(WcgWebView, self).__init__(parent)
         self.kwargs = kwargs
         self.config = config
-        self.nam = (config.get('networkAccessManager')
+        self.nam = (kwargs.get('networkAccessManager')
                     or QNetworkAccessManager())
         self.setPage(WCGWebPage(config=config))
         self.page().setNetworkAccessManager(self.nam)
