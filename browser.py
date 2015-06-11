@@ -716,9 +716,9 @@ class WcgWebView(QWebView):
         Overridden from QWebView to allow for popup windows, if enabled.
         """
         if self.config.get("allow_popups"):
+            self.kwargs["networkAccessManager"] = self.nam
             self.popup = WcgWebView(
                 self.config,
-                networkAccessManager=self.nam,
                 **self.kwargs
             )
             # This assumes the window manager has an "X" icon
