@@ -314,18 +314,18 @@ class MainWindow(QMainWindow):
             # we can just specify whitelist = True,
             # which should whitelist just the start_url and bookmark urls.
             if type(self.config.get("whitelist")) is not list:
-                self.whitelist = []
-            self.whitelist.append(str(QUrl(
+                whitelist = []
+            whitelist.append(str(QUrl(
                 self.config.get("start_url")
             ).host()))
             bookmarks = self.config.get("bookmarks")
             if bookmarks:
-                self.whitelist += [
+                whitelist += [
                     str(QUrl(b.get("url")).host())
                     for k, b in bookmarks.items()
                 ]
-                self.whitelist = set(self.whitelist)  # uniquify and optimize
-            debug("Generated whitelist: " + str(self.whitelist))
+                self.config["whitelist"] = set(whitelist)  # uniquify and optimize
+            debug("Generated whitelist: " + str(whitelist))
 
         # If diagnostic is enabled, connect CTRL+ALT+? to show some diagnistic info
         if (self.config.get("enable_diagnostic")):
