@@ -81,6 +81,8 @@ import re
 import subprocess
 import datetime
 
+from functools import partial
+
 # MESSAGE STRINGS
 # You can override this string with the "page_unavailable_html" setting.
 # Just set it to a filename of the HTML you want to display.
@@ -313,7 +315,8 @@ class MainWindow(QMainWindow):
         if self.config.get("whitelist"):
             # we can just specify whitelist = True,
             # which should whitelist just the start_url and bookmark urls.
-            if type(self.config.get("whitelist")) is not list:
+            whitelist = self.config.get("whitelist")
+            if type(whitelist) is not list:
                 whitelist = []
             whitelist.append(str(QUrl(
                 self.config.get("start_url")
@@ -702,6 +705,7 @@ class WcgWebView(QWebView):
             self.auth_dialog
         )
         self.page().unsupportedContent.connect(self.handle_unsupported_content)
+        self.page().downloadRequested.connect(self.download)
         self.page().networkAccessManager().sslErrors.connect(
             self.sslErrorHandler
         )
@@ -783,6 +787,15 @@ class WcgWebView(QWebView):
             authenticator.setUser(default_user)
         if (default_password):
             authenticator.setPassword(default_password)
+
+    def download(self, request):
+        """Handle a download request
+
+        This is needed for certain types of download links
+        """
+
+        reply = self.nam.get(request)
+        reply.finished.connect(partial(self.handle_unsupported_content, reply))
 
     def handle_unsupported_content(self, reply):
         """Handle requests to open non-web content
