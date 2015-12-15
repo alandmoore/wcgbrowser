@@ -934,51 +934,53 @@ class WcgWebView(QWebView):
         Callback for the print action.
         Should show a print dialog and print the webpage to the printer.
         """
-        if self.print_settings.get("mode") == "high":
+        print_settings = self.config.get("print_settings")
+
+        if print_settings.get("mode") == "high":
             printer = QPrinter(mode=QPrinter.HighResolution)
         else:
             printer = QPrinter(mode=QPrinter.ScreenResolution)
 
-        if self.print_settings:
-            if self.print_settings.get("size_unit"):
+        if print_settings:
+            if print_settings.get("size_unit"):
                 try:
                     unit = getattr(
                         QPrinter,
-                        self.print_settings.get("size_unit").capitalize()
+                        print_settings.get("size_unit").capitalize()
                     )
                 except NameError:
                     debug(
                         "Specified print size unit '{}' not found,"
                         "using default.".format(
-                            self.print_settings.get("size_unit")
+                            print_settings.get("size_unit")
                         ))
                     unit = QPrinter.Millimeter
             else:
                 unit = QPrinter.Millimeter
 
             margins = (
-                list(self.print_settings.get("margins"))
+                list(print_settings.get("margins"))
                 or list(printer.getPageMargins(unit))
             )
             margins += [unit]
             printer.setPageMargins(*margins)
 
-            if self.print_settings.get("orientation") == "landscape":
+            if print_settings.get("orientation") == "landscape":
                 printer.setOrientation(QPrinter.Landscape)
             else:
                 printer.setOrientation(QPrinter.Portrait)
 
-            if self.print_settings.get("paper_size"):
+            if print_settings.get("paper_size"):
                 printer.setPaperSize(QSizeF(
-                    *self.print_settings.get("paper_size")
+                    *print_settings.get("paper_size")
                 ), unit)
 
-            if self.print_settings.get("resolution"):
+            if print_settings.get("resolution"):
                 printer.setResolution(
-                    int(self.print_settings.get("resolution"))
+                    int(print_settings.get("resolution"))
                 )
 
-        if not self.print_settings.get("silent"):
+        if not print_settings.get("silent"):
             print_dialog = QPrintDialog(printer, self)
             print_dialog.setWindowTitle("Print Page")
             if not print_dialog.exec_() == QDialog.Accepted:
