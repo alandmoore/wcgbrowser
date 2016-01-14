@@ -172,16 +172,17 @@ icon_theme:  "oxygen"
 
 #allow_printing: True
 
+# Print Settings
 # Several printing defaults can be set to allow silent printing. Please see the README.rst file for an explanation of all the options.
-# Default: empty
+# Default: empty, which causes these settings to be used:
 
 #print_settings:
-#    silent: True
-#    orientation: "landscape"
-#    size_unit: millimeter
-#    paper_size: [500, 1000]
-#    margins: [5, 5, 8, 8]
-#    resolution: 300
+#    silent: False
+#    orientation: "Portrait"
+#    size_unit: "Millimeter"
+#    paper_size: (None)  # Uses printer defaults
+#    margins: (None)  # Uses printer defaults
+#    resolution: (None) # Uses printer defaults
 #    mode: "screen"
 
 # privacy_mode Configures whether or not "Private Browsing" mode is enabled on the webkit widget.
@@ -226,7 +227,7 @@ bookmarks:
     name: "WCGBrowser Website"
     url: "http://www.alandmoore.com/wcgbrowser/wcgbrowser.html"
     description: "WCGBrowser main website."
-    
+
   2:
     name: "WCGBrowser &Github"
     url: "http://github.com/alandmoore/wcgbrowser"
