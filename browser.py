@@ -966,7 +966,8 @@ class WcgWebView(QWebView):
         margins = list(
             print_settings.get("margins", printer.getPageMargins(unit))
         )
-        printer.setPageMargins(*margins, unit)
+        margins.append(unit)
+        printer.setPageMargins(*margins)
 
         # Set the Orientation
         orientation = print_settings.get("orientation", 'Portrait').title()
