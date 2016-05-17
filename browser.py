@@ -58,13 +58,15 @@ while True:
         )
         from PySide.QtCore import (
             QUrl, QTimer, QObject, QEvent, Qt, QTemporaryFile,
-            QDir, QCoreApplication, qVersion, pyqtSignal
+            QDir, QCoreApplication, qVersion, Signal
         )
         from PySide.QtWebKit import QWebView, QWebPage, QWebSettings
         from PySide.QtNetwork import (
             QNetworkRequest, QNetworkAccessManager, QNetworkProxy
         )
         QT_VERSION_STR = qVersion()
+        pyqtSignal = Signal
+
         break
     except ImportError as e:
         print("You don't seem to have a QT library installed;"
@@ -279,7 +281,7 @@ class MainWindow(QMainWindow):
             action.setToolTip(tip)
             action.setStatusTip(tip)
         if slot is not None:
-            action.__getattr__(signal).connect(slot)
+            getattr(action, signal).connect(slot)
         if checkable:
             action.setCheckable()
         return action
