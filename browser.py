@@ -458,9 +458,14 @@ class MainWindow(QMainWindow):
                         bookmark_name = bookmark[1].get("name") or bookmark[0]
                         # Create a button for the bookmark as a QAction,
                         # which we'll add to the toolbar
+                        bookmark_url = bookmark[1].get("url", "about:blank")
+                        bookmark_callback = partial(
+                            self.browser_window.load,
+                            QUrl(bookmark_url)
+                        )
                         button = self.createAction(
                             bookmark_name,
-                            lambda url=bookmark[1].get("url"): self.browser_window.load(QUrl(url)),
+                            bookmark_callback,
                             QKeySequence.mnemonic(bookmark_name),
                             None,
                             bookmark[1].get("description")
