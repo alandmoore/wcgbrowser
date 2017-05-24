@@ -163,6 +163,7 @@ def debug(message):
             except:
                 print("unable to write to log file {}".format(DEBUG_LOG))
 
+
 # Define our default configuration settings
 CONFIG_OPTIONS = {
     "allow_external_content": {"default": False, "type": bool},
@@ -329,10 +330,12 @@ class MainWindow(QMainWindow):
                     str(QUrl(b.get("url")).host())
                     for k, b in bookmarks.items()
                 ]
-                self.config["whitelist"] = set(whitelist)  # uniquify and optimize
+                # uniquify and optimize
+                self.config["whitelist"] = set(whitelist)
             debug("Generated whitelist: " + str(whitelist))
 
-        # If diagnostic is enabled, connect CTRL+ALT+? to show some diagnistic info
+        # If diagnostic is enabled:
+        #   connect CTRL+ALT+? to show some diagnistic info
         if (self.config.get("enable_diagnostic")):
             self.diagnostic_action = self.createAction(
                 "Show Diagnostic",
@@ -646,6 +649,30 @@ class InactivityFilter(QTimer):
         return QObject.eventFilter(self, object, event)
 
 
+class WcgNetworkAccessManager(QNetworkAccessManager):
+    """Overridden so we can get debug info from responses"""
+
+    def __init__(self):
+        super(WcgNetworkAccessManager, self).__init__()
+        # add event listener on "load finished" event
+        self.finished.connect(self._finished)
+
+    def _finished(self, reply):
+        headers = [
+            (str(k), str(v))
+            for k, v in reply.rawHeaderPairs()
+        ]
+        url = reply.url().toString()
+        # getting status is bit of a pain
+        status = reply.attribute(
+            QNetworkRequest.HttpStatusCodeAttribute
+        )
+        debug(
+            "Got {status} from {url}, headers: {headers}"
+            .format(status=status, headers=headers, url=url)
+        )
+
+
 class WcgWebView(QWebView):
     """This is the webview for the application.
 
@@ -658,7 +685,7 @@ class WcgWebView(QWebView):
         self.kwargs = kwargs
         self.config = config
         self.nam = (kwargs.get('networkAccessManager')
-                    or QNetworkAccessManager())
+                    or WcgNetworkAccessManager())
         self.setPage(WCGWebPage(config=config))
         self.page().setNetworkAccessManager(self.nam)
         self.settings().setAttribute(
@@ -928,7 +955,7 @@ class WcgWebView(QWebView):
                 debug("Start Url doesn't seem to be available;"
                       " displaying error")
             else:
-                debug("404 on URL: {}" .format(self.url().toString()))
+                debug("Error loading URL: {}" .format(self.url().toString()))
                 self.setHtml(
                     self.config.get("page_unavailable_html")
                     .format(**self.config), QUrl()
