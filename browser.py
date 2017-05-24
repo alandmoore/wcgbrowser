@@ -656,6 +656,7 @@ class WcgNetworkAccessManager(QNetworkAccessManager):
         super(WcgNetworkAccessManager, self).__init__()
         # add event listener on "load finished" event
         self.finished.connect(self._finished)
+        self.failed_urls = []
 
     def _finished(self, reply):
         headers = [
@@ -667,10 +668,32 @@ class WcgNetworkAccessManager(QNetworkAccessManager):
         status = reply.attribute(
             QNetworkRequest.HttpStatusCodeAttribute
         )
+        # track the URLs that failed
+        if status is None or status >= 400:
+            self.failed_urls.append(url)
         debug(
             "Got {status} from {url}, headers: {headers}"
             .format(status=status, headers=headers, url=url)
         )
+
+    def reset_failed_urls(self):
+        self.failed_urls = []
+
+
+    def createRequest(self, op, request, iodata):
+        ops = ['HEAD', 'GET', 'PUT', 'POST', 'DELETE', 'CUSTOM']
+        url = str(request.url())
+        headers = [str(x) for x in request.rawHeaderList()]
+        if iodata:
+            data = iodata.readAll()
+            iodata.reset()
+        else:
+            data = None
+        debug(
+            "{op} request to {url} with data {data}, headers: {headers}"
+            .format(op=ops[op], url=url, headers=headers, data=data)
+        )
+        return super(WcgNetworkAccessManager, self).createRequest(op, request, iodata)
 
 
 class WcgWebView(QWebView):
@@ -944,6 +967,14 @@ class WcgWebView(QWebView):
         it's just some random page), or a "network is down" message
         (if it's the start page that failed).
         """
+        # "ok==false" doesn't always mean a complete failure
+        # and we shouldn't automatically assume the entire page failed to load.
+
+        # Check the WcgNetworkAccessManager's failed_urls to see if our requested
+        # url failed to load.  If it's not in there, load anyway.
+        if not ok:
+            if self.url().toString() not in self.nam.failed_urls:
+                ok = True
         if not ok:
             if (
                 self.url().host() == QUrl(self.config.get("start_url")).host()
@@ -955,11 +986,12 @@ class WcgWebView(QWebView):
                 debug("Start Url doesn't seem to be available;"
                       " displaying error")
             else:
-                debug("Error loading URL: {}" .format(self.url().toString()))
+                debug("**PAGE LOAD FAILED, URL: {}" .format(self.url().toString()))
                 self.setHtml(
                     self.config.get("page_unavailable_html")
                     .format(**self.config), QUrl()
                 )
+        self.nam.reset_failed_urls()
         return True
 
     def print_webpage(self):
