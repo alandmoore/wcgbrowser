@@ -684,14 +684,9 @@ class WcgNetworkAccessManager(QNetworkAccessManager):
         ops = ['HEAD', 'GET', 'PUT', 'POST', 'DELETE', 'CUSTOM']
         url = str(request.url())
         headers = [str(x) for x in request.rawHeaderList()]
-        if iodata:
-            data = iodata.readAll()
-            iodata.reset()
-        else:
-            data = None
         debug(
-            "{op} request to {url} with data {data}, headers: {headers}"
-            .format(op=ops[op], url=url, headers=headers, data=data)
+            "{op} request to {url}, headers: {headers}"
+            .format(op=ops[op], url=url, headers=headers)
         )
         return super(WcgNetworkAccessManager, self).createRequest(op, request, iodata)
 
