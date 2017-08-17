@@ -756,7 +756,7 @@ class WcgWebView(QWebView):
         self.page().networkAccessManager().authenticationRequired.connect(
             self.auth_dialog
         )
-        self.page().unsupportedContent.connect(self.handle_unsupported_content)
+        self.page().unsupportedContent.connect(self.handle_unsupported_content, type=Qt.QueuedConnection)
         self.page().downloadRequested.connect(self.download)
         self.page().networkAccessManager().sslErrors.connect(
             self.sslErrorHandler
@@ -883,6 +883,10 @@ class WcgWebView(QWebView):
                 file_name=self.content_filename,
                 url=content_url.toString()))
         else:
+            if self.reply.isFinished:
+                self.display_downloaded_content()
+            else:
+                self.reply.finished.connect(self.display_downloaded_content)
             if str(self.url().toString()) in ('', 'about:blank'):
                 self.setHtml(DOWNLOADING_MESSAGE.format(
                     filename=self.content_filename,
@@ -891,13 +895,14 @@ class WcgWebView(QWebView):
             else:
                 # print(self.url())
                 self.load(self.url())
-            self.reply.finished.connect(self.display_downloaded_content)
 
     def display_downloaded_content(self):
         """Open downloaded non-html content in a separate application.
 
         Called when an unsupported content type is finished downloading.
         """
+        debug("displaying downloaded content from {}".format(self.reply.url()))
+
         file_path = (
             QDir.toNativeSeparators(
                 QDir.tempPath() + "/XXXXXX_" + self.content_filename
