@@ -859,14 +859,18 @@ class WcgWebView(QWebView):
         """
         self.reply = reply
         self.content_type = self.reply.header(
-            QNetworkRequest.ContentTypeHeader).toString()
+            QNetworkRequest.ContentTypeHeader
+            )
         self.content_filename = re.match(
             '.*;\s*filename=(.*);',
-            self.reply.rawHeader('Content-Disposition')
+            bytes(self.reply.rawHeader(b'Content-Disposition')).decode('UTF-8')
         )
         self.content_filename = QUrl.fromPercentEncoding(
-            (self.content_filename and self.content_filename.group(1))
-            or ''
+            (
+                self.content_filename.group(1).encode('UTF-8')
+                if self.content_filename
+                else b''
+            )
         )
         content_url = self.reply.url()
         debug(
