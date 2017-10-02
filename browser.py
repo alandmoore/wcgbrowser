@@ -207,6 +207,7 @@ CONFIG_OPTIONS = {
                                "values": ["reset", "close", "screensaver"]},
     "user_agent":             {"default": None, "type": str},
     "user_css":               {"default": None, "type": str},
+    "use_utf8_as_default":    {"default": False, "type": bool},
     "whitelist":              {"default": None},  # don't check type here
     "window_size":            {"default": None},  # don't check type
     "zoom_factor":            {"default": 1.0, "type": float}
@@ -344,6 +345,13 @@ class MainWindow(QMainWindow):
                 tip=''
             )
             self.addAction(self.diagnostic_action)
+
+        # Set the default encoding to utf-8
+        if (self.config.get("use_utf8_as_default")):
+            reload(sys)
+            sys.setdefaultencoding('utf-8')
+        else:
+            print("Not using UTF-8")
 
         self.build_ui()
 
