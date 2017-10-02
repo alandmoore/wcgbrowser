@@ -350,8 +350,6 @@ class MainWindow(QMainWindow):
         if (self.config.get("use_utf8_as_default")):
             reload(sys)
             sys.setdefaultencoding('utf-8')
-        else:
-            print("Not using UTF-8")
 
         self.build_ui()
 
