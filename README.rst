@@ -94,7 +94,7 @@ force_js_confirm       "ask"              If set to "accept" or "deny", will ove
 suppress_alerts        False              If True, blocks JavaScript popup alerts from appearing, or shows them when False.
 allow_printing         False              Enable printing of web pages from the context menu or toolbar.
 print_settings         (empty)            Specify default printer settings, see below.
-default_encoding       "utf-8"            The default encoding for the system to use.
+default_encoding       "utf-8"            The default encoding for the system to use (Python 2.x only).
 default_password       (empty)            default password to send when pages request authentication
 default_user           (empty)            default username to send when pages request authentication
 enable_diagnostic      False              Enable the display of diagnostic information when Ctrl-Alt-? is hit.
