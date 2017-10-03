@@ -257,9 +257,7 @@ content_handlers:
   "application/pdf": "acroread"
   "application/vnd.oasis.opendocument.text": "libreoffice"
 
-# Use UTF-8 as default encoding
-# If use_utf8_as_default is set to True, the system's default encoding will be set to UTF-8.
-# This is so that special characters can be entered without issue.
-# Default: false
+# Set the default encoding for the sytem to use.
+# Default: "utf-8"
 
-use_utf8_as_default: False
+default_encoding: "utf-8"
