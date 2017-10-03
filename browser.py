@@ -29,7 +29,7 @@ while True:
                                      QNetworkProxy)
         break
     except ImportError as e:
-        print("QTt5 import error")
+        print("Qt5 import error")
         pass
     try:
         """If not PyQt5, try PyQt4"""
@@ -47,7 +47,8 @@ while True:
             QNetworkRequest, QNetworkAccessManager, QNetworkProxy
         )
         break
-    except ImportError:
+    except ImportError as e:
+        print("Qt4 import error")
         pass
     try:
         """If not PyQT, try PySide"""
@@ -82,6 +83,10 @@ import yaml
 import re
 import subprocess
 import datetime
+
+# Import reload if using python 3.x
+if sys.version_info[0] > 2:
+    from importlib import reload
 
 from functools import partial
 
@@ -347,8 +352,8 @@ class MainWindow(QMainWindow):
             self.addAction(self.diagnostic_action)
 
         # Set the default encoding
-        reload(sys)
-        sys.setdefaultencoding(self.config.get("default_encoding"))
+        # reload(sys)
+        # sys.setdefaultencoding(self.config.get("default_encoding"))
 
         self.build_ui()
 
