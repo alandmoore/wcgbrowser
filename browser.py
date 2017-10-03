@@ -84,10 +84,6 @@ import re
 import subprocess
 import datetime
 
-# Import reload if using python 3.x
-if sys.version_info[0] > 2:
-    from importlib import reload
-
 from functools import partial
 
 # MESSAGE STRINGS
@@ -351,9 +347,10 @@ class MainWindow(QMainWindow):
             )
             self.addAction(self.diagnostic_action)
 
-        # Set the default encoding
-        # reload(sys)
-        # sys.setdefaultencoding(self.config.get("default_encoding"))
+        # Set the default encoding if using python 2
+        if sys.version_info[0] < 3:
+            reload(sys)
+            sys.setdefaultencoding(self.config.get("default_encoding"))
 
         self.build_ui()
 
