@@ -256,3 +256,8 @@ bookmarks:
 content_handlers:
   "application/pdf": "acroread"
   "application/vnd.oasis.opendocument.text": "libreoffice"
+
+# Set the default encoding for the sytem to use.
+# Default: "utf-8"
+
+default_encoding: "utf-8"

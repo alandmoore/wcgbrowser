@@ -29,7 +29,7 @@ while True:
                                      QNetworkProxy)
         break
     except ImportError as e:
-        print("QTt5 import error")
+        print("Qt5 import error")
         pass
     try:
         """If not PyQt5, try PyQt4"""
@@ -47,7 +47,8 @@ while True:
             QNetworkRequest, QNetworkAccessManager, QNetworkProxy
         )
         break
-    except ImportError:
+    except ImportError as e:
+        print("Qt4 import error")
         pass
     try:
         """If not PyQT, try PySide"""
@@ -172,6 +173,7 @@ CONFIG_OPTIONS = {
     "allow_printing":         {"default": False, "type": bool},
     "bookmarks":              {"default": {}, "type": dict},
     "content_handlers":       {"default": {}, "type": dict},
+    "default_encoding":       {"default": "utf-8", "type": str},
     "default_password":       {"default": None, "type": str},
     "default_user":           {"default": None, "type": str},
     "enable_diagnostic":      {"default": False, "type": bool},
@@ -344,6 +346,11 @@ class MainWindow(QMainWindow):
                 tip=''
             )
             self.addAction(self.diagnostic_action)
+
+        # Set the default encoding if using python 2
+        if sys.version_info[0] < 3:
+            reload(sys)
+            sys.setdefaultencoding(self.config.get("default_encoding"))
 
         self.build_ui()
 
