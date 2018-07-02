@@ -83,7 +83,7 @@ import yaml
 import re
 import subprocess
 import datetime
-
+import socket
 from functools import partial
 
 # MESSAGE STRINGS
@@ -163,6 +163,20 @@ def debug(message):
                 fh.close
             except:
                 print("unable to write to log file {}".format(DEBUG_LOG))
+
+
+def get_ip():
+    """Get the local routing IP.
+
+    Liberally borrowed from https://stackoverflow.com/a/25850698/1454109
+    """
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('1.1.1.1', 1))  # IP used is kind of irrelevant
+    except OSError:
+        return ''
+    return s.getsockname()[0]
 
 
 # Define our default configuration settings
@@ -590,6 +604,7 @@ class MainWindow(QMainWindow):
             "OS": os.uname(),
             "USER": (os.environ.get("USER")
                      or os.environ.get("USERNAME")),
+            "IP": get_ip(),
             "Python": sys.version,
             "Qt": QT_VERSION_STR,
             "Script Date": (
