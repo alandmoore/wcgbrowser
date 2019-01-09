@@ -17,6 +17,8 @@ It's based on pyqt and webkit, and is designed to make lock-down very simple and
 
 It was originally conceived for use in library catalog terminals, when it became clear that browsers with ever-growing feature lists like Firefox and Chrome were too much work to lock down correctly and completely.  It was also designed to be easily configurable using a simple text file that can be hand-edited in a terminal over ssh across a slow WAN, so no databases, XML, or crazy binaries here.
 
+NOTE: the "next generation" of WCGBrowser is the WebEngine (Blink/Chromium) based ADMBrowser, which you can find at https://github.com/alandmoore/admbrowser.
+
 Features
 ========
 
@@ -72,7 +74,7 @@ At a minimum, you need to specify a "start url" using either the config file or 
 -n, --no-navigation     Turn off the navigation panel (back, forward, home, shortcuts, etc).  Make sure your actual web application is fully navigable!
 -p, --popups            Enable the creation of new windows when a link is clicked that opens in a new window, or javascript tries to open a window
 -t, --timeout           The timeout for the inactivity monitor.  After this many seconds of inactivity, reset the browser
--u, --user          Set the default username to be sent when a site requests authentication
+-u, --user              Set the default username to be sent when a site requests authentication
 -w, --password          Set the default password to be sent when a site requests authentication
 -z, --zoom              The default zoom factor for content.  0 ignores this.  1 is default, 2 would be double size, 0.5 would be half-size, etc.
 ====================    =====================================================================================================================================
