@@ -29,7 +29,8 @@ while True:
                                      QNetworkProxy)
         break
     except ImportError as e:
-        print("Qt5 import error")
+        print(f"PyQt5 not found: {e}")
+        print(f"Trying PyQt4")
         pass
     try:
         """If not PyQt5, try PyQt4"""
@@ -48,7 +49,8 @@ while True:
         )
         break
     except ImportError as e:
-        print("Qt4 import error")
+        print(f"PyQt4 not found: {e}")
+        print("Trying PySide")
         pass
     try:
         """If not PyQT, try PySide"""
@@ -70,8 +72,9 @@ while True:
 
         break
     except ImportError as e:
-        print("You don't seem to have a QT library installed;"
-              " please install PyQT or PySide.")
+        print(f"PySide not found: {e}")
+        print("You don't seem to have a Python QT library installed;"
+              " please install PyQt4, PyQt5, or PySide.")
         exit(1)
 
 
