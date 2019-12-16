@@ -706,12 +706,11 @@ class WcgNetworkAccessManager(QNetworkAccessManager):
 
 
     def createRequest(self, op, request, iodata):
-        ops = ['HEAD', 'GET', 'PUT', 'POST', 'DELETE', 'CUSTOM']
         url = str(request.url())
         headers = [str(x) for x in request.rawHeaderList()]
         debug(
             "{op} request to {url}, headers: {headers}"
-            .format(op=ops[op], url=url, headers=headers)
+            .format(op=op, url=url, headers=headers)
         )
         return super(WcgNetworkAccessManager, self).createRequest(op, request, iodata)
 
