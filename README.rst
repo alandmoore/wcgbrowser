@@ -282,8 +282,14 @@ Bugs and Limitations
 - SSL certificate handling is limited; I'd like the ability to add self-signed certificates, but I don't know how to accomplish this yet.  Right now you get "strict" or "ignore", which is not as flexible as one might wish.
 - There is no password dialog when a page requests authentication.  You can set a single user/password set in the config file to be sent whenever a site does request it, or provide auth credentials in the URL (in a bookmark/start_url).
 - Mime type handling is a little rough still, and you're bound to get 404 or network errors attempting to download documents when it's disabled.
+  - As of 2020, Google ReCAPTCHA has dropped support for webkit.  Some users report that it works if you switch the user agent string to a supported browser (see configuration section for how to do this).  It may also help to disable the private browsing feature.  Unfortunatley it still has issues sometimes, and there is nothing this project can do about that.
 
-If you find bugs, please report them as an "issue" at the project's github page: http://github.com/alandmoore/wcgbrowser/issues. If your "bug" is really a feature request, see below.
+If you find bugs, please report them as an "issue" at the project's github page: http://github.com/alandmoore/wcgbrowser/issues.  Please:
+
+- Create one issue per bug.  Do not put multiple bugs into a single issue.
+- Be willing to respond to questions, because we will likely have them.  If you do not respond to questions in a timely manner and we cannot reproduce the issue, we will close your issue.
+- Be as descriptive as possible and include information about your platform, OS, python version, Qt version, and whatever else might be relevant.  If we cannot reproduce the problem, we cannot fix it.
+- If your "bug" is really a feature request, see "Making a feature request" below.
 
 Contributing
 ============
